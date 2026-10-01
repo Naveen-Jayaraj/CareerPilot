@@ -12,6 +12,7 @@ export class PrepView {
     this.container = container;
     this.onEditJob = onEditJob;
     this.selectedJobId = null;
+    this.activeColumnFilter = 'all';
     this.draggedCard = null; // { jobId, fromColId, cardId }
   }
 
@@ -44,6 +45,18 @@ export class PrepView {
       if (col.id === 'done') doneCards += col.cards.length;
     });
     const progressPct = totalCards > 0 ? Math.round((doneCards / totalCards) * 100) : 0;
+
+    const filterPills = [
+      { id: 'all', label: 'All Columns' },
+      { id: 'todo', label: 'To Study' },
+      { id: 'doing', label: 'In Progress' },
+      { id: 'review', label: 'Revision & Mock' },
+      { id: 'done', label: 'Mastered' }
+    ];
+
+    const visibleCols = this.activeColumnFilter === 'all'
+      ? boardData.columns
+      : boardData.columns.filter(c => c.id === this.activeColumnFilter);
 
     this.container.innerHTML = `
       <div class="prep-container">
@@ -85,9 +98,18 @@ export class PrepView {
           </div>
         </div>
 
+        <!-- Column Filter Pills (for focused column view on any display) -->
+        <div class="prep-column-filter-pills" id="prep-column-filter-pills">
+          ${filterPills.map(p => `
+            <button class="prep-col-pill ${this.activeColumnFilter === p.id ? 'active' : ''}" data-col-filter="${p.id}">
+              ${p.label}
+            </button>
+          `).join('')}
+        </div>
+
         <!-- Trello Columns Grid -->
-        <div class="trello-board-grid" id="trello-board-grid">
-          ${boardData.columns.map(col => this.renderColumn(col, currentJob)).join('')}
+        <div class="trello-board-grid ${this.activeColumnFilter !== 'all' ? 'single-col-view' : ''}" id="trello-board-grid">
+          ${visibleCols.map(col => this.renderColumn(col, currentJob)).join('')}
         </div>
       </div>
     `;
@@ -159,6 +181,14 @@ export class PrepView {
     this.container.querySelectorAll('.prep-tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         this.selectedJobId = btn.dataset.jobId;
+        this.render();
+      });
+    });
+
+    // Column filter pills
+    this.container.querySelectorAll('.prep-col-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.activeColumnFilter = btn.dataset.colFilter;
         this.render();
       });
     });
