@@ -302,6 +302,43 @@ class CloudSyncManager {
     }
   }
 
+  async fetchTotpSecret() {
+    if (!this.client) return null;
+    try {
+      const { data, error } = await this.client
+        .from('user_security')
+        .select('totp_secret')
+        .eq('id', 'master_user')
+        .maybeSingle();
+      if (error || !data) return null;
+      return data.totp_secret;
+    } catch (e) {
+      console.warn('Error fetching server TOTP secret:', e);
+      return null;
+    }
+  }
+
+  async saveTotpSecret(secret) {
+    if (!this.client || !secret) return false;
+    try {
+      const { error } = await this.client
+        .from('user_security')
+        .upsert({
+          id: 'master_user',
+          totp_secret: secret,
+          updated_at: new Date().toISOString()
+        });
+      if (error) {
+        console.warn('Error saving server TOTP secret:', error);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.warn('Error saving server TOTP secret:', e);
+      return false;
+    }
+  }
+
   notifyStatus(errorMessage = '') {
     window.dispatchEvent(new CustomEvent('cloud-sync-status', {
       detail: {

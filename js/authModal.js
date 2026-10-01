@@ -1,10 +1,11 @@
 /**
  * Google Authenticator (TOTP) Passwordless Login & Lock Manager
- * Server-side & local vault verified. Zero username/password required.
- * Hardened against Brute-Force, Replay Attacks, Session Fixation, and Idle Inactivity.
+ * Centralized Server-Side Single-Scan Authentication via Supabase.
+ * Zero Username / Zero Password required.
  */
 import { TOTP } from './totp.js';
 import { storage } from './storage.js';
+import { cloudSync } from './cloudSync.js';
 import { notifications } from './notifications.js';
 import { icons } from './icons.js';
 
@@ -20,13 +21,19 @@ class AuthManager {
     this.init();
   }
 
-  init() {
-    // Restore lock state from sessionStorage
+  async init() {
+    // 1. Check session unlock state
     const sessionUnlocked = sessionStorage.getItem('careerpilot_unlocked') === 'true';
-    const savedSecret = localStorage.getItem('careerpilot_totp_secret');
 
-    if (savedSecret) {
-      this.secretKey = savedSecret;
+    // 2. Fetch server-side TOTP secret from Supabase (Central single-scan secret)
+    const serverSecret = await cloudSync.fetchTotpSecret();
+    const localSecret = localStorage.getItem('careerpilot_totp_secret');
+
+    if (serverSecret) {
+      this.secretKey = serverSecret;
+      localStorage.setItem('careerpilot_totp_secret', serverSecret);
+    } else if (localSecret) {
+      this.secretKey = localSecret;
     }
 
     if (sessionUnlocked && this.secretKey) {
@@ -84,11 +91,20 @@ class AuthManager {
     document.body.appendChild(backdrop);
   }
 
-  showLockOverlay() {
+  async showLockOverlay() {
     const backdrop = document.getElementById('auth-overlay-backdrop');
     if (!backdrop) return;
 
     backdrop.classList.add('active');
+
+    // Re-check server secret in case another device initialized it
+    if (!this.secretKey) {
+      const serverSecret = await cloudSync.fetchTotpSecret();
+      if (serverSecret) {
+        this.secretKey = serverSecret;
+        localStorage.setItem('careerpilot_totp_secret', serverSecret);
+      }
+    }
 
     if (!this.secretKey) {
       this.renderSetupMode();
@@ -103,7 +119,7 @@ class AuthManager {
     const qrImageUrl = `https://quickchart.io/qr?text=${encodeURIComponent(otpUrl)}&size=180&margin=1`;
 
     document.getElementById('auth-title').textContent = 'Setup Google Authenticator';
-    document.getElementById('auth-subtitle').textContent = 'Scan this QR code with Google Authenticator, then enter your first 6-digit verification code below.';
+    document.getElementById('auth-subtitle').textContent = 'Scan this QR code ONCE with Google Authenticator. This master code will be saved to your cloud server for access across all devices.';
 
     const container = document.getElementById('auth-body-container');
     container.innerHTML = `
@@ -126,7 +142,7 @@ class AuthManager {
         <div class="auth-error-msg" id="auth-error-msg"></div>
 
         <button class="btn btn-primary btn-sm" id="btn-verify-setup" style="width: 100%;">
-          Verify & Save Authenticator
+          Verify & Sync Authenticator
         </button>
       </div>
     `;
@@ -160,11 +176,15 @@ class AuthManager {
     if (isValid) {
       this.secretKey = this.tempSecret;
       localStorage.setItem('careerpilot_totp_secret', this.secretKey);
+      
+      // Save master secret to Supabase server for cross-device authentication
+      await cloudSync.saveTotpSecret(this.secretKey);
+
       sessionStorage.setItem('careerpilot_unlocked', 'true');
       this.isUnlocked = true;
       this.setupInactivityTimer();
 
-      notifications.showToast('Google Authenticator connected successfully!', 'success');
+      notifications.showToast('Google Authenticator synced to server!', 'success');
       notifications.playChime('success');
       this.closeLockOverlay();
     } else {
@@ -190,10 +210,6 @@ class AuthManager {
         <button class="btn btn-primary btn-sm" id="btn-verify-unlock" style="width: 100%; margin-top: 4px;">
           Unlock Dashboard
         </button>
-
-        <button class="btn btn-secondary btn-xs" id="btn-reset-auth" style="margin-top: 14px; opacity: 0.7;">
-          Re-pair New Device / QR Code
-        </button>
       </div>
     `;
 
@@ -204,15 +220,6 @@ class AuthManager {
     container.querySelector('#btn-verify-unlock').onclick = async () => {
       const code = this.getEnteredPin();
       await this.handleVerifyUnlock(code);
-    };
-
-    container.querySelector('#btn-reset-auth').onclick = () => {
-      if (confirm('Reset current Google Authenticator key and pair a new device?')) {
-        localStorage.removeItem('careerpilot_totp_secret');
-        sessionStorage.removeItem('careerpilot_unlocked');
-        this.secretKey = null;
-        this.renderSetupMode();
-      }
     };
   }
 
