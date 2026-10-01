@@ -1,6 +1,6 @@
 /* ==========================================================================
-   TRELLO-STYLE COMPANY PREP BOARDS
-   Linear/Trello aesthetic with per-company boards, drag-and-drop, and progress
+   TRELLO-STYLE COMPANY PREP BOARDS - ALL SCREENS COMPATIBLE
+   Linear/Trello aesthetic with responsive auto-fit grid and mobile column filters
    ========================================================================== */
 
 .prep-container {
@@ -23,14 +23,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 4px;
+  flex-wrap: wrap;
   max-width: 100%;
-  scrollbar-width: none;
-}
-
-.prep-company-tabs-wrap::-webkit-scrollbar {
-  display: none;
 }
 
 .prep-tab-btn {
@@ -40,9 +34,9 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
-  padding: 7px 14px;
+  padding: 6px 12px;
   border-radius: var(--radius-sm);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
@@ -64,7 +58,7 @@
 }
 
 .prep-tab-badge {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-family: var(--font-mono);
   background: var(--bg-sidebar);
   padding: 1px 6px;
@@ -77,7 +71,7 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 12px 16px;
+  padding: 12px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -88,20 +82,21 @@
 .board-info-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .board-target-title {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .board-target-subtitle {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--text-secondary);
 }
 
@@ -109,11 +104,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  min-width: 220px;
+  min-width: 200px;
 }
 
 .board-progress-text {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
   font-family: var(--font-mono);
   color: var(--text-secondary);
@@ -136,10 +131,37 @@
   transition: width 0.3s ease;
 }
 
-/* Trello Columns Grid */
+/* Column Filter Pills (for narrow screens/mobile) */
+.prep-column-filter-pills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.prep-col-pill {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.prep-col-pill.active {
+  background: var(--bg-surface-elevated);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Trello Columns Grid - ADAPTIVE AUTO-FIT ON ALL SCREENS */
 .trello-board-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
   width: 100%;
   align-items: start;
@@ -151,11 +173,12 @@
   border-radius: var(--radius-sm);
   display: flex;
   flex-direction: column;
-  min-height: 380px;
+  min-height: 280px;
+  width: 100%;
 }
 
 .trello-col-header {
-  padding: 10px 12px;
+  padding: 9px 12px;
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-sidebar);
   border-top-left-radius: var(--radius-sm);
@@ -169,7 +192,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -180,7 +203,7 @@
   flex-direction: column;
   gap: 8px;
   flex: 1;
-  min-height: 120px;
+  min-height: 100px;
 }
 
 .trello-card-list.drag-over {
@@ -199,6 +222,8 @@
   cursor: grab;
   transition: all 0.15s ease;
   user-select: none;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .trello-card:hover {
@@ -212,18 +237,20 @@
 }
 
 .trello-card-text {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--text-primary);
   line-height: 1.35;
   font-weight: 500;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .trello-card-tag {
   display: inline-flex;
   align-items: center;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 600;
-  padding: 2px 6px;
+  padding: 2px 5px;
   border-radius: var(--radius-xs);
   width: fit-content;
   text-transform: uppercase;
@@ -291,7 +318,7 @@
   border: 1px dashed var(--border-subtle);
   border-radius: var(--radius-xs);
   color: var(--text-secondary);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -314,10 +341,10 @@
   border-radius: var(--radius-xs);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   padding: 6px 8px;
   resize: vertical;
-  min-height: 52px;
+  min-height: 48px;
   outline: none;
 }
 
@@ -331,26 +358,15 @@
   justify-content: flex-end;
 }
 
-/* Responsive Trello Board for Mobile */
-@media (max-width: 1024px) {
-  .trello-board-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
+/* Responsive Mobile Rules */
 @media (max-width: 640px) {
   .trello-board-grid {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    gap: 10px;
-    padding-bottom: 12px;
-    -webkit-overflow-scrolling: touch;
+    grid-template-columns: 1fr;
   }
   .trello-col {
-    min-width: 270px;
-    flex-shrink: 0;
-    scroll-snap-align: start;
-    min-height: 340px;
+    min-height: auto;
+  }
+  .board-progress-wrap {
+    width: 100%;
   }
 }
