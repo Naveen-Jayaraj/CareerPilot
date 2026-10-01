@@ -5,6 +5,7 @@
 import { storage } from './storage.js';
 import { notifications } from './notifications.js';
 import { icons } from './icons.js';
+import { getCompanyAvatar } from './avatars.js';
 
 export class StatsView {
   constructor(container) {
@@ -294,13 +295,16 @@ export class StatsView {
 
               return `
                 <div class="action-milestone-item">
-                  <div class="ami-left">
-                    <div class="ami-title">
-                      <strong>${this.escape(job.company)}</strong> — <span>${this.escape(job.milestoneType || 'Milestone')}</span>
-                      <span class="chip chip-mode">${this.escape(job.role || 'Role')}</span>
-                    </div>
-                    <div class="ami-date">
-                      ${countdownText} • ${mDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                    ${getCompanyAvatar(job.company, 28)}
+                    <div class="ami-left">
+                      <div class="ami-title">
+                        <strong>${this.escape(job.company)}</strong> — <span>${this.escape(job.milestoneType || 'Milestone')}</span>
+                        <span class="chip chip-mode">${this.escape(job.role || 'Role')}</span>
+                      </div>
+                      <div class="ami-date">
+                        ${countdownText} • ${mDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </div>
                     </div>
                   </div>
                   <div style="display: flex; gap: 6px; align-items: center;">

@@ -6,6 +6,7 @@
 import { storage } from './storage.js';
 import { notifications } from './notifications.js';
 import { icons } from './icons.js';
+import { getCompanyAvatar } from './avatars.js';
 
 export class PrepView {
   constructor(container, onEditJob) {
@@ -28,7 +29,7 @@ export class PrepView {
       return;
     }
 
-    // Default to the first job with an upcoming milestone or the first active job
+    // Default to priority job or first
     if (!this.selectedJobId || !jobs.some(j => j.id === this.selectedJobId)) {
       const priorityJob = jobs.find(j => j.status === 'Interview' || j.status === 'Exam' || j.status === 'Shortlisted') || jobs[0];
       this.selectedJobId = priorityJob.id;
@@ -47,10 +48,10 @@ export class PrepView {
     const progressPct = totalCards > 0 ? Math.round((doneCards / totalCards) * 100) : 0;
 
     const filterPills = [
-      { id: 'all', label: 'All Columns' },
+      { id: 'all', label: 'All' },
       { id: 'todo', label: 'To Study' },
       { id: 'doing', label: 'In Progress' },
-      { id: 'review', label: 'Revision & Mock' },
+      { id: 'review', label: 'Revision' },
       { id: 'done', label: 'Mastered' }
     ];
 
@@ -60,7 +61,7 @@ export class PrepView {
 
     this.container.innerHTML = `
       <div class="prep-container">
-        <!-- Company Selector Tabs -->
+        <!-- Colorful Minimal Company Tabs -->
         <div class="prep-header-area">
           <div class="prep-company-tabs-wrap" id="prep-company-tabs">
             ${jobs.map(j => {
@@ -69,6 +70,7 @@ export class PrepView {
               const count = jBoard.columns.reduce((acc, c) => acc + c.cards.length, 0);
               return `
                 <button class="prep-tab-btn ${isSelected ? 'active' : ''}" data-job-id="${j.id}">
+                  ${getCompanyAvatar(j.company, 22)}
                   <span>${this.escape(j.company)}</span>
                   <span class="prep-tab-badge">${count}</span>
                 </button>
@@ -77,28 +79,26 @@ export class PrepView {
           </div>
         </div>
 
-        <!-- Board Information & Progress Bar -->
+        <!-- Minimized Streamlined Board Meta Bar -->
         <div class="prep-board-meta">
           <div class="board-info-left">
+            ${getCompanyAvatar(currentJob.company, 30)}
             <div class="board-target-title">
-              <span>${this.escape(currentJob.company)} Prep Board</span>
-              <span class="chip chip-mode">${this.escape(currentJob.role || 'Role')}</span>
-              <span class="chip" style="background: rgba(99, 102, 241, 0.12); color: #818cf8;">${currentJob.status}</span>
-            </div>
-            <div class="board-target-subtitle">
-              ${currentJob.nextMilestoneDate ? `Next up: ${this.escape(currentJob.milestoneType || 'Milestone')} on ${new Date(currentJob.nextMilestoneDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}` : 'Dedicated Trello study workspace'}
+              <span>${this.escape(currentJob.company)}</span>
+              <span class="board-meta-badge chip-mode">${this.escape(currentJob.role || 'Role')}</span>
+              <span class="board-meta-badge" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc;">${currentJob.status}</span>
             </div>
           </div>
 
           <div class="board-progress-wrap">
-            <span class="board-progress-text">${doneCards}/${totalCards} Mastered (${progressPct}%)</span>
+            <span class="board-progress-text">${doneCards}/${totalCards} Done</span>
             <div class="board-progress-bar">
               <div class="board-progress-fill" style="width: ${progressPct}%;"></div>
             </div>
           </div>
         </div>
 
-        <!-- Column Filter Pills (for focused column view on any display) -->
+        <!-- Compact Column Filter Pills -->
         <div class="prep-column-filter-pills" id="prep-column-filter-pills">
           ${filterPills.map(p => `
             <button class="prep-col-pill ${this.activeColumnFilter === p.id ? 'active' : ''}" data-col-filter="${p.id}">
@@ -118,18 +118,18 @@ export class PrepView {
   }
 
   renderColumn(col, job) {
-    const colIcons = {
-      todo: '<span class="status-indicator" style="background: #64748b;"></span>',
-      doing: '<span class="status-indicator" style="background: #f59e0b;"></span>',
-      review: '<span class="status-indicator" style="background: #8b5cf6;"></span>',
-      done: '<span class="status-indicator" style="background: #10b981;"></span>'
+    const colDots = {
+      todo: '<span class="status-indicator" style="background: #94a3b8;"></span>',
+      doing: '<span class="status-indicator" style="background: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);"></span>',
+      review: '<span class="status-indicator" style="background: #8b5cf6; box-shadow: 0 0 6px rgba(139, 92, 246, 0.4);"></span>',
+      done: '<span class="status-indicator" style="background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);"></span>'
     };
 
     return `
       <div class="trello-col" data-col-id="${col.id}">
         <div class="trello-col-header">
           <div class="trello-col-title">
-            ${colIcons[col.id] || ''}
+            ${colDots[col.id] || ''}
             <span>${col.title}</span>
           </div>
           <span class="column-count">${col.cards.length}</span>
@@ -141,7 +141,7 @@ export class PrepView {
 
         <div class="trello-col-footer" id="footer-${col.id}">
           <button class="btn-add-card" data-col-id="${col.id}">
-            ${icons.plus} <span>Add Card</span>
+            ${icons.plus} <span>Add Topic</span>
           </button>
         </div>
       </div>
@@ -153,25 +153,25 @@ export class PrepView {
 
     return `
       <div class="trello-card" draggable="true" data-card-id="${card.id}" data-col-id="${colId}">
-        <span class="trello-card-tag ${tagClass}">${this.escape(card.tag || 'DSA')}</span>
-        <div class="trello-card-text">${this.escape(card.text)}</div>
-        <div class="trello-card-footer">
+        <div class="trello-card-top">
+          <span class="trello-card-tag ${tagClass}">${this.escape(card.tag || 'DSA')}</span>
           <div class="card-move-btns">
             ${colId !== 'todo' ? `
-              <button class="btn-card-nav btn-move-left" data-card-id="${card.id}" data-col-id="${colId}" title="Move back">
-                ❮
+              <button class="btn-card-nav btn-move-left" data-card-id="${card.id}" data-col-id="${colId}" title="Move left">
+                ‹
               </button>
             ` : ''}
             ${colId !== 'done' ? `
-              <button class="btn-card-nav btn-move-right" data-card-id="${card.id}" data-col-id="${colId}" title="Advance card">
-                ❯
+              <button class="btn-card-nav btn-move-right" data-card-id="${card.id}" data-col-id="${colId}" title="Advance">
+                ›
               </button>
             ` : ''}
+            <button class="btn-card-del" data-card-id="${card.id}" data-col-id="${colId}" title="Delete">
+              ${icons.trash}
+            </button>
           </div>
-          <button class="btn-card-del" data-card-id="${card.id}" data-col-id="${colId}" title="Delete task">
-            ${icons.trash}
-          </button>
         </div>
+        <div class="trello-card-text">${this.escape(card.text)}</div>
       </div>
     `;
   }

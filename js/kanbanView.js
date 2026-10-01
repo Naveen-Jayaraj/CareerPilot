@@ -1,9 +1,7 @@
-/**
- * Kanban Pipeline View - Linear Style (No side-scroll lock, pure SVG icons)
- */
 import { storage } from './storage.js';
 import { notifications } from './notifications.js';
 import { icons } from './icons.js';
+import { getCompanyAvatar } from './avatars.js';
 
 export const STAGES = [
   { id: 'Wishlist', label: 'Wishlist', color: '#64748b' },
@@ -29,38 +27,13 @@ export class KanbanView {
     const stats = storage.getStats();
 
     this.container.innerHTML = `
-      <!-- Executive Metric Ribbon -->
-      <div class="metric-ribbon">
-        <div class="metric-card">
-          <span class="metric-card-label">Total Applied</span>
-          <span class="metric-card-val">${stats.total}</span>
-          <span class="metric-card-sub">All logged</span>
-        </div>
-        <div class="metric-card">
-          <span class="metric-card-label">Shortlisted</span>
-          <span class="metric-card-val" style="color: #6366f1;">${stats.shortlisted}</span>
-          <span class="metric-card-sub">Screened</span>
-        </div>
-        <div class="metric-card">
-          <span class="metric-card-label">Interviews & OA</span>
-          <span class="metric-card-val" style="color: #f59e0b;">${stats.interviewCount}</span>
-          <span class="metric-card-sub">Active tests</span>
-        </div>
-        <div class="metric-card">
-          <span class="metric-card-label">Offers</span>
-          <span class="metric-card-val" style="color: #10b981;">${stats.offers}</span>
-          <span class="metric-card-sub">Secured</span>
-        </div>
-        <div class="metric-card">
-          <span class="metric-card-label">Peak LPA</span>
-          <span class="metric-card-val" style="color: #0ea5e9;">${stats.maxLpa}</span>
-          <span class="metric-card-sub">Top compensation</span>
-        </div>
-        <div class="metric-card">
-          <span class="metric-card-label">In-Flight</span>
-          <span class="metric-card-val">${stats.activePipeline}</span>
-          <span class="metric-card-sub">Active pipeline</span>
-        </div>
+      <!-- Minimized Colorful Summary Ribbon -->
+      <div class="table-compact-summary">
+        <div class="summary-pill"><span class="summary-dot" style="background:#6366f1;"></span> <span><strong>${stats.total}</strong> Total</span></div>
+        <div class="summary-pill"><span class="summary-dot" style="background:#8b5cf6;"></span> <span><strong>${stats.shortlisted}</strong> Shortlisted</span></div>
+        <div class="summary-pill"><span class="summary-dot" style="background:#f59e0b;"></span> <span><strong>${stats.interviewCount}</strong> Interview/OA</span></div>
+        <div class="summary-pill"><span class="summary-dot" style="background:#10b981;"></span> <span><strong>${stats.offers}</strong> Offers</span></div>
+        <div class="summary-pill summary-peak"><span class="summary-dot" style="background:#0ea5e9;"></span> <span>Peak: <strong>${stats.maxLpa}</strong></span></div>
       </div>
 
       <!-- Action Toolbar -->
@@ -211,6 +184,7 @@ export class KanbanView {
 
     card.innerHTML = `
       <div class="card-header">
+        ${getCompanyAvatar(job.company, 28)}
         <div class="card-title-group">
           <span class="card-company">${this.escape(job.company)}</span>
           <span class="card-role">${this.escape(job.role || 'Role')}</span>

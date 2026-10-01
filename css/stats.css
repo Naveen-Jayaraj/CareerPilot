@@ -27,11 +27,31 @@
 .stat-metric-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.stat-metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-brand);
+  opacity: 0.6;
+}
+
+.stat-metric-card:hover {
+  border-color: var(--border-medium);
+  transform: translateY(-1px);
 }
 
 .stat-metric-header {
@@ -208,5 +228,18 @@
 @media (max-width: 900px) {
   .analytics-grid-two-col {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .analytics-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .stat-metric-card {
+    padding: 10px 12px;
+  }
+  .stat-metric-value {
+    font-size: 1.25rem;
   }
 }

@@ -1,10 +1,11 @@
 /**
- * Rock-Solid Calendar View - Grid & Agenda Timeline Modes
- * Fixed uniform heights prevent cell stretching or grid wobbling across all screen sizes.
+ * Streamlined & Vibrant Calendar View
+ * Clean glowing milestone dots, colorful company avatars, non-cluttered timeline
  */
 import { storage } from './storage.js';
 import { notifications } from './notifications.js';
 import { icons } from './icons.js';
+import { getCompanyAvatar } from './avatars.js';
 
 export class CalendarView {
   constructor(container, onEditJob, onOpenDetail) {
@@ -12,7 +13,7 @@ export class CalendarView {
     this.onEditJob = onEditJob;
     this.onOpenDetail = onOpenDetail;
     this.currentDate = new Date();
-    this.viewMode = window.innerWidth <= 640 ? 'agenda' : 'grid'; // Auto agenda on mobile
+    this.viewMode = window.innerWidth <= 640 ? 'agenda' : 'grid';
   }
 
   render() {
@@ -40,47 +41,47 @@ export class CalendarView {
     });
 
     this.container.innerHTML = `
-      <!-- Calendar Control Header -->
-      <div class="calendar-header-bar">
-        <div class="cal-header-left">
-          <h2 style="font-size: 1.15rem; font-weight: 700;">${monthNames[month]} ${year}</h2>
-          <span style="font-size: 0.78rem; color: var(--text-secondary);">Scheduled tests, interviews, and deadlines</span>
-        </div>
-
-        <div class="cal-header-right">
-          <!-- Grid / Agenda Toggle -->
-          <div class="cal-view-toggle">
-            <button class="cal-toggle-btn ${this.viewMode === 'grid' ? 'active' : ''}" id="btn-mode-grid">
-              Grid
-            </button>
-            <button class="cal-toggle-btn ${this.viewMode === 'agenda' ? 'active' : ''}" id="btn-mode-agenda">
-              Agenda
-            </button>
+      <div class="calendar-container">
+        <!-- Minimalist Header Bar -->
+        <div class="calendar-header-bar">
+          <div class="cal-header-left">
+            <h2 class="cal-month-title">${monthNames[month]} ${year}</h2>
           </div>
 
-          <!-- Nav Btns -->
-          <div class="cal-nav-btns">
-            <button id="cal-prev" class="btn btn-secondary btn-xs">Prev</button>
-            <button id="cal-today" class="btn btn-secondary btn-xs">Today</button>
-            <button id="cal-next" class="btn btn-secondary btn-xs">Next</button>
+          <div class="cal-header-right">
+            <!-- View Toggle -->
+            <div class="cal-view-toggle">
+              <button class="cal-toggle-btn ${this.viewMode === 'grid' ? 'active' : ''}" id="btn-mode-grid">
+                Month
+              </button>
+              <button class="cal-toggle-btn ${this.viewMode === 'agenda' ? 'active' : ''}" id="btn-mode-agenda">
+                Agenda
+              </button>
+            </div>
+
+            <!-- Month Nav -->
+            <div class="cal-nav-btns">
+              <button id="cal-prev" class="btn btn-secondary btn-xs" title="Previous month">‹</button>
+              <button id="cal-today" class="btn btn-secondary btn-xs">Today</button>
+              <button id="cal-next" class="btn btn-secondary btn-xs" title="Next month">›</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Main Body Container -->
-      <div class="cal-card">
-        ${this.viewMode === 'grid' ? this.renderGridHTML(year, month, events) : this.renderAgendaHTML(events)}
-      </div>
+        <!-- Main Body -->
+        <div class="cal-card">
+          ${this.viewMode === 'grid' ? this.renderGridHTML(year, month, events) : this.renderAgendaHTML(events)}
+        </div>
 
-      <!-- Upcoming Milestones Tray -->
-      <div class="cal-upcoming-card">
-        <div class="cal-upcoming-header">
-          <span style="font-weight: 600; font-size: 0.85rem;">Upcoming Milestone Action Center</span>
-          <span class="column-count">${events.filter(e => e.date >= new Date(Date.now() - 24 * 60 * 60 * 1000)).length} Active</span>
-        </div>
-        <div class="cal-upcoming-list" id="calendar-tray-list">
-          ${this.renderTrayHTML(events)}
-        </div>
+        <!-- Upcoming Schedule Summary -->
+        ${this.viewMode === 'grid' ? `
+          <div class="cal-agenda-wrap" style="margin-top: 14px;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px;">
+              Upcoming Schedule
+            </div>
+            ${this.renderUpcomingItems(events)}
+          </div>
+        ` : ''}
       </div>
     `;
 
@@ -96,7 +97,7 @@ export class CalendarView {
 
     let cellsHtml = '';
 
-    // Previous month padding days
+    // Previous month outside days
     for (let i = firstDayIndex - 1; i >= 0; i--) {
       cellsHtml += `
         <div class="cal-day-cell cal-day-outside">
@@ -105,27 +106,25 @@ export class CalendarView {
       `;
     }
 
-    // Current month days
+    // Month days
     for (let d = 1; d <= totalDays; d++) {
       const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const isToday = dateKey === todayKey;
       const dayEvents = events.filter(e => e.dateKey === dateKey);
 
-      let eventsChipsHtml = '';
+      let dotsHtml = '';
       if (dayEvents.length > 0) {
-        // Max 2 visible in grid to prevent height wobbling
-        const visibleEvents = dayEvents.slice(0, 2);
-        const extraCount = dayEvents.length - 2;
-
-        eventsChipsHtml = `
-          <div class="day-events-wrap">
-            ${visibleEvents.map(ev => `
-              <div class="cal-event-chip" data-job-id="${ev.job.id}" title="${this.escape(ev.title)}">
-                <span class="event-indicator"></span>
-                <span>${this.escape(ev.job.company)}</span>
-              </div>
-            `).join('')}
-            ${extraCount > 0 ? `<span class="more-events-indicator">+${extraCount} more</span>` : ''}
+        dotsHtml = `
+          <div class="day-dots-wrap">
+            ${dayEvents.slice(0, 3).map(ev => {
+              const type = (ev.job.milestoneType || '').toLowerCase();
+              let dotClass = 'dot-general';
+              if (type.includes('interview')) dotClass = 'dot-interview';
+              else if (type.includes('exam') || type.includes('assessment')) dotClass = 'dot-exam';
+              else if (type.includes('deadline') || type.includes('offer')) dotClass = 'dot-deadline';
+              return `<span class="cal-dot ${dotClass}" title="${this.escape(ev.title)}"></span>`;
+            }).join('')}
+            ${dayEvents.length > 3 ? `<span style="font-size: 0.6rem; color: var(--text-muted); font-weight: 700;">+${dayEvents.length - 3}</span>` : ''}
           </div>
         `;
       }
@@ -135,7 +134,7 @@ export class CalendarView {
           <div class="day-num-bar">
             <span class="day-num">${d}</span>
           </div>
-          ${eventsChipsHtml}
+          ${dotsHtml}
         </div>
       `;
     }
@@ -151,95 +150,62 @@ export class CalendarView {
   }
 
   renderAgendaHTML(events) {
-    const sortedEvents = events.sort((a, b) => a.date - b.date);
+    const sorted = events.sort((a, b) => a.date - b.date);
 
-    if (sortedEvents.length === 0) {
-      return `<div class="tray-empty">No milestones or deadlines scheduled. Set milestone dates on your applications!</div>`;
+    if (sorted.length === 0) {
+      return `<div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.8rem;">No scheduled events. Set milestone dates on your applications to track them here.</div>`;
     }
 
-    // Group events by dateKey
-    const grouped = {};
-    sortedEvents.forEach(ev => {
-      grouped[ev.dateKey] = grouped[ev.dateKey] || [];
-      grouped[ev.dateKey].push(ev);
-    });
-
-    const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
-
     return `
-      <div class="cal-agenda-container">
-        ${Object.entries(grouped).map(([dateKey, dayEvents]) => {
-          const d = dayEvents[0].date;
-          const dateTitle = d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
-          const isToday = dateKey === todayStr;
-
-          return `
-            <div class="agenda-day-group">
-              <div class="agenda-day-header">
-                ${icons.calendar}
-                <span>${dateTitle}</span>
-                ${isToday ? '<span class="agenda-today-tag">Today</span>' : ''}
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                ${dayEvents.map(ev => {
-                  const gCal = notifications.getGoogleCalendarUrl(ev.job);
-                  return `
-                    <div class="cal-tray-row" data-job-id="${ev.job.id}">
-                      <div class="cal-tray-left">
-                        <div class="tray-type-badge">${this.escape(ev.job.milestoneType || 'Milestone')}</div>
-                        <div class="tray-title"><strong>${this.escape(ev.job.company)}</strong> — <span>${this.escape(ev.job.role || 'Role')}</span></div>
-                        <div class="tray-date">${ev.date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</div>
-                      </div>
-                      <div class="cal-tray-right">
-                        ${gCal ? `<a href="${gCal}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs">+ Google Cal</a>` : ''}
-                        <button class="btn btn-secondary btn-xs btn-ics-tray" data-job-id="${ev.job.id}">.ics</button>
-                        <button class="btn btn-primary btn-xs btn-view-tray" data-job-id="${ev.job.id}">View</button>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-          `;
-        }).join('')}
+      <div class="cal-agenda-wrap">
+        ${this.renderUpcomingItems(events)}
       </div>
     `;
   }
 
-  renderTrayHTML(events) {
-    const sortedUpcoming = events
+  renderUpcomingItems(events) {
+    const upcoming = events
       .filter(e => e.date >= new Date(Date.now() - 24 * 60 * 60 * 1000))
       .sort((a, b) => a.date - b.date);
 
-    if (sortedUpcoming.length === 0) {
-      return `<div class="tray-empty">No upcoming milestones.</div>`;
+    if (upcoming.length === 0) {
+      return `<div style="padding: 12px; color: var(--text-muted); font-size: 0.78rem;">No upcoming milestones right now.</div>`;
     }
 
-    return sortedUpcoming.map(ev => {
-      const timeStr = ev.date.toLocaleDateString(undefined, { 
-        weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-      });
+    const now = new Date();
+
+    return upcoming.slice(0, 8).map(ev => {
+      const diffDays = Math.ceil((ev.date - now) / (1000 * 60 * 60 * 24));
+      let countdownLabel = diffDays <= 0 ? 'Today' : diffDays === 1 ? 'Tomorrow' : `In ${diffDays}d`;
+      let countdownClass = diffDays <= 1 ? 'countdown-urgent' : diffDays <= 3 ? 'countdown-soon' : 'countdown-normal';
+
       const gCalUrl = notifications.getGoogleCalendarUrl(ev.job);
+      const monthShort = ev.date.toLocaleDateString(undefined, { month: 'short' });
+      const dayNum = ev.date.getDate();
+      const timeStr = ev.date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
       return `
-        <div class="cal-tray-row" data-job-id="${ev.job.id}">
-          <div class="cal-tray-left">
-            <div class="tray-type-badge">${this.escape(ev.job.milestoneType || 'Milestone')}</div>
-            <div class="tray-title"><strong>${this.escape(ev.job.company)}</strong> — <span>${this.escape(ev.job.role || 'Role')}</span></div>
-            <div class="tray-date">${timeStr}</div>
+        <div class="cal-agenda-item" data-job-id="${ev.job.id}">
+          <div class="cal-agenda-left">
+            <div class="cal-agenda-date-box">
+              <div class="cad-month">${monthShort}</div>
+              <div class="cad-day">${dayNum}</div>
+            </div>
+            ${getCompanyAvatar(ev.job.company, 28)}
+            <div class="cal-agenda-info">
+              <div class="cal-agenda-company">
+                <span>${this.escape(ev.job.company)}</span>
+                <span class="cal-countdown-pill ${countdownClass}">${countdownLabel}</span>
+              </div>
+              <div class="cal-agenda-milestone">
+                ${this.escape(ev.job.milestoneType || 'Milestone')} &bull; ${timeStr}
+              </div>
+            </div>
           </div>
-          <div class="cal-tray-right">
-            ${gCalUrl ? `
-              <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs" title="Google Calendar">
-                + Google Cal
-              </a>
-            ` : ''}
-            <button class="btn btn-secondary btn-xs btn-ics-tray" data-job-id="${ev.job.id}" title="Download .ics">
-              ${icons.calendar} .ics
-            </button>
-            <button class="btn btn-primary btn-xs btn-view-tray" data-job-id="${ev.job.id}">
-              View
-            </button>
+          <div class="cal-agenda-right">
+            ${gCalUrl ? `<a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs">+ GCal</a>` : ''}
+            <button class="btn btn-secondary btn-xs btn-ics-tray" data-job-id="${ev.job.id}" title="Download .ics">.ics</button>
+            <button class="btn btn-primary btn-xs btn-view-tray" data-job-id="${ev.job.id}">View</button>
           </div>
         </div>
       `;
@@ -247,7 +213,6 @@ export class CalendarView {
   }
 
   attachEventListeners(year, month, events) {
-    // Mode toggles
     this.container.querySelector('#btn-mode-grid')?.addEventListener('click', () => {
       this.viewMode = 'grid';
       this.render();
@@ -258,7 +223,6 @@ export class CalendarView {
       this.render();
     });
 
-    // Nav
     this.container.querySelector('#cal-prev')?.addEventListener('click', () => {
       this.currentDate = new Date(year, month - 1, 1);
       this.render();
@@ -274,16 +238,17 @@ export class CalendarView {
       this.render();
     });
 
-    // Grid event clicks
-    this.container.querySelectorAll('.cal-event-chip').forEach(chip => {
-      chip.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const job = storage.getJob(chip.dataset.jobId);
-        if (job) this.onOpenDetail(job);
+    // Date cell click in grid: if date has events, open detail of first event
+    this.container.querySelectorAll('.cal-day-cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const dateKey = cell.dataset.dateKey;
+        const matching = events.find(e => e.dateKey === dateKey);
+        if (matching) {
+          this.onOpenDetail(matching.job);
+        }
       });
     });
 
-    // Tray & Agenda clicks
     this.container.querySelectorAll('.btn-ics-tray').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -296,6 +261,14 @@ export class CalendarView {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const job = storage.getJob(btn.dataset.jobId);
+        if (job) this.onOpenDetail(job);
+      });
+    });
+
+    this.container.querySelectorAll('.cal-agenda-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('a')) return;
+        const job = storage.getJob(item.dataset.jobId);
         if (job) this.onOpenDetail(job);
       });
     });
