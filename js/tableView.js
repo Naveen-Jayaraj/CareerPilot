@@ -127,10 +127,6 @@ export class TableView {
             ${icons.download}
             <span>Export CSV</span>
           </button>
-          <button id="table-add-btn" class="btn btn-primary btn-sm">
-            ${icons.plus}
-            <span>Add Application</span>
-          </button>
         </div>
       </div>
 
@@ -260,10 +256,6 @@ export class TableView {
     this.container.querySelector('#btn-export-csv')?.addEventListener('click', () => {
       storage.exportCSV();
       notifications.showToast('CSV export downloaded', 'success');
-    });
-
-    this.container.querySelector('#table-add-btn')?.addEventListener('click', () => {
-      this.onEditJob(null);
     });
 
     this.container.querySelectorAll('.th-sortable').forEach(th => {

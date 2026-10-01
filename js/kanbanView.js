@@ -78,13 +78,6 @@ export class KanbanView {
             <button class="pill-btn" data-filter="OFFERS">Offers</button>
           </div>
         </div>
-
-        <div class="toolbar-right">
-          <button id="kanban-add-btn" class="btn btn-primary">
-            ${icons.plus}
-            <span>Add Application</span>
-          </button>
-        </div>
       </div>
 
       <!-- Kanban Responsive Grid -->
@@ -103,10 +96,6 @@ export class KanbanView {
 
     document.getElementById('kanban-search')?.addEventListener('input', (e) => {
       this.filterCards(e.target.value.toLowerCase());
-    });
-
-    document.getElementById('kanban-add-btn')?.addEventListener('click', () => {
-      this.onEditJob(null);
     });
 
     this.renderColumns(jobs);
