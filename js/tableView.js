@@ -64,13 +64,13 @@ export class TableView {
     });
 
     this.container.innerHTML = `
-      <!-- Minimized Colorful Summary Ribbon -->
+      <!-- Minimized Colorful Summary Ribbon with Graphic Badges -->
       <div class="table-compact-summary">
-        <div class="summary-pill"><span class="summary-dot" style="background:#6366f1;"></span> <span><strong>${stats.total}</strong> Total</span></div>
-        <div class="summary-pill"><span class="summary-dot" style="background:#8b5cf6;"></span> <span><strong>${stats.shortlisted}</strong> Shortlisted</span></div>
-        <div class="summary-pill"><span class="summary-dot" style="background:#f59e0b;"></span> <span><strong>${stats.interviewCount}</strong> Interview/OA</span></div>
-        <div class="summary-pill"><span class="summary-dot" style="background:#10b981;"></span> <span><strong>${stats.offers}</strong> Offers</span></div>
-        <div class="summary-pill summary-peak"><span class="summary-dot" style="background:#0ea5e9;"></span> <span>Peak: <strong>${stats.maxLpa}</strong></span></div>
+        <div class="summary-pill"><span class="pill-graphic pill-graphic-indigo">${icons.briefcaseSmall}</span> <span><strong>${stats.total}</strong> Total</span></div>
+        <div class="summary-pill"><span class="pill-graphic pill-graphic-purple">${icons.star}</span> <span><strong>${stats.shortlisted}</strong> Shortlisted</span></div>
+        <div class="summary-pill"><span class="pill-graphic pill-graphic-amber">${icons.zap}</span> <span><strong>${stats.interviewCount}</strong> Interview/OA</span></div>
+        <div class="summary-pill"><span class="pill-graphic pill-graphic-emerald">${icons.award}</span> <span><strong>${stats.offers}</strong> Offers</span></div>
+        <div class="summary-pill summary-peak"><span class="pill-graphic pill-graphic-cyan">${icons.trendingUp}</span> <span>Peak: <strong>${stats.maxLpa}</strong></span></div>
       </div>
 
       <!-- Table Toolbar -->

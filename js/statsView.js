@@ -88,7 +88,10 @@ export class StatsView {
         <div class="analytics-metrics-grid">
           <div class="stat-metric-card">
             <div class="stat-metric-header">
-              <span class="stat-metric-label">Total Applied</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="pill-graphic pill-graphic-indigo">${icons.briefcaseSmall}</span>
+                <span class="stat-metric-label">Total Applied</span>
+              </div>
               <span class="stat-badge-trend stat-badge-blue">100%</span>
             </div>
             <div class="stat-metric-value">${stats.total}</div>
@@ -97,7 +100,10 @@ export class StatsView {
 
           <div class="stat-metric-card">
             <div class="stat-metric-header">
-              <span class="stat-metric-label">Shortlisted</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="pill-graphic pill-graphic-purple">${icons.star}</span>
+                <span class="stat-metric-label">Shortlisted</span>
+              </div>
               <span class="stat-badge-trend stat-badge-purple">${shortlistRate}% pass</span>
             </div>
             <div class="stat-metric-value" style="color: #818cf8;">${stats.shortlisted}</div>
@@ -106,7 +112,10 @@ export class StatsView {
 
           <div class="stat-metric-card">
             <div class="stat-metric-header">
-              <span class="stat-metric-label">Interviews / OA</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="pill-graphic pill-graphic-amber">${icons.zap}</span>
+                <span class="stat-metric-label">Interviews / OA</span>
+              </div>
               <span class="stat-badge-trend stat-badge-amber">${interviewRate}% conv</span>
             </div>
             <div class="stat-metric-value" style="color: #fbbf24;">${stats.interviewCount}</div>
@@ -115,7 +124,10 @@ export class StatsView {
 
           <div class="stat-metric-card">
             <div class="stat-metric-header">
-              <span class="stat-metric-label">Offers Placed</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="pill-graphic pill-graphic-emerald">${icons.award}</span>
+                <span class="stat-metric-label">Offers Placed</span>
+              </div>
               <span class="stat-badge-trend stat-badge-green">${offerRate}% win</span>
             </div>
             <div class="stat-metric-value" style="color: #10b981;">${stats.offers}</div>
@@ -124,7 +136,10 @@ export class StatsView {
 
           <div class="stat-metric-card">
             <div class="stat-metric-header">
-              <span class="stat-metric-label">Peak Package</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="pill-graphic pill-graphic-cyan">${icons.trendingUp}</span>
+                <span class="stat-metric-label">Peak Package</span>
+              </div>
               <span class="stat-badge-trend stat-badge-blue">Max LPA</span>
             </div>
             <div class="stat-metric-value" style="color: #0ea5e9;">${stats.maxLpa}</div>
@@ -133,7 +148,10 @@ export class StatsView {
 
           <div class="stat-metric-card">
             <div class="stat-metric-header">
-              <span class="stat-metric-label">Avg Pipeline Age</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="pill-graphic pill-graphic-purple">${icons.clock}</span>
+                <span class="stat-metric-label">Avg Pipeline Age</span>
+              </div>
               <span class="stat-badge-trend stat-badge-purple">${avgVelocity}d avg</span>
             </div>
             <div class="stat-metric-value">${avgVelocity} Days</div>
