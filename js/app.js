@@ -1,6 +1,6 @@
 /**
- * Main Application Coordinator
- * State management, view switching, modals, cloud sync, and PWA registration
+ * Main Application Coordinator - Linear Style
+ * SVG icons, responsive view switching, modal management, cloud sync
  */
 import { storage } from './storage.js';
 import { cloudSync } from './cloudSync.js';
@@ -10,29 +10,25 @@ import { TableView } from './tableView.js';
 import { CalendarView } from './calendarView.js';
 import { StatsView } from './statsView.js';
 import { PrepView } from './prepView.js';
+import { icons } from './icons.js';
 
 class App {
   constructor() {
-    this.currentView = 'kanban';
+    this.currentView = 'table'; // Default to clean spreadsheet table
     this.editingJob = null;
     this.views = {};
     this.init();
   }
 
   init() {
-    // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('PWA Service Worker registered:', reg.scope))
-          .catch(err => console.log('Service Worker registration skipped/failed:', err));
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
       });
     }
 
-    // Apply saved theme
     this.applyTheme(storage.getSettings().theme || 'cyber-dark');
 
-    // Setup views
     const mainContent = document.getElementById('view-container');
     this.views.kanban = new KanbanView(
       mainContent, 
@@ -55,16 +51,14 @@ class App {
       (job) => this.openEditModal(job)
     );
 
-    // Initial render
-    this.switchView('kanban');
+    // Initial view: Table (Spreadsheet view) as default for clean, dense look
+    this.switchView('table');
 
-    // Global navigation event listeners
     this.setupNavigation();
     this.setupModals();
     this.setupHeaderActions();
     this.setupCloudSyncIndicator();
 
-    // Listen to data updates
     window.addEventListener('jobs-updated', () => {
       this.refreshCurrentView();
     });
@@ -77,10 +71,20 @@ class App {
   switchView(viewName) {
     this.currentView = viewName;
 
-    // Update active nav links (desktop sidebar & mobile bottom bar)
     document.querySelectorAll('.nav-item').forEach(el => {
       el.classList.toggle('active', el.dataset.view === viewName);
     });
+
+    // Update header view title
+    const titleMap = {
+      table: 'Spreadsheet Tracker',
+      kanban: 'Pipeline Board',
+      calendar: 'Calendar & Deadlines',
+      prep: 'Prep & Revision Hub',
+      stats: 'Analytics & Insights'
+    };
+    const titleEl = document.getElementById('header-view-name');
+    if (titleEl) titleEl.textContent = titleMap[viewName] || 'Career Dashboard';
 
     this.refreshCurrentView();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -101,19 +105,16 @@ class App {
       });
     });
 
-    // Mobile FAB
     document.getElementById('mobile-fab-add')?.addEventListener('click', () => {
       this.openEditModal(null);
     });
 
-    // Header Add Button
     document.getElementById('header-add-btn')?.addEventListener('click', () => {
       this.openEditModal(null);
     });
   }
 
   setupHeaderActions() {
-    // Notification Drawer
     const bellBtn = document.getElementById('btn-notifications-drawer');
     const drawer = document.getElementById('notification-drawer');
     const closeDrawerBtn = document.getElementById('btn-close-drawer');
@@ -129,13 +130,13 @@ class App {
     closeDrawerBtn?.addEventListener('click', () => toggleDrawer(false));
     backdrop?.addEventListener('click', () => toggleDrawer(false));
 
-    // Cloud Sync Modal Button
     document.getElementById('btn-cloud-sync')?.addEventListener('click', () => {
       this.openCloudModal();
     });
 
-    // Theme Toggle
-    document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
+    // Theme toggle
+    const themeBtn = document.getElementById('btn-theme-toggle');
+    themeBtn?.addEventListener('click', () => {
       const current = document.documentElement.getAttribute('data-theme') || 'cyber-dark';
       const next = current === 'cyber-dark' ? 'light' : 'cyber-dark';
       this.applyTheme(next);
@@ -147,6 +148,11 @@ class App {
 
   applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
+    const themeBtn = document.getElementById('btn-theme-toggle');
+    if (themeBtn) {
+      themeBtn.innerHTML = theme === 'cyber-dark' ? icons.sun : icons.moon;
+      themeBtn.title = theme === 'cyber-dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme';
+    }
   }
 
   setupCloudSyncIndicator() {
@@ -190,28 +196,27 @@ class App {
     if (reminders.length === 0) {
       list.innerHTML = `
         <div class="empty-notifications">
-          <span style="font-size: 2rem;">🔔</span>
-          <h4>You are all caught up!</h4>
-          <p class="text-muted text-sm">No upcoming milestone deadlines or urgent interviews at the moment.</p>
+          ${icons.bell}
+          <div style="font-weight: 600; margin-top: 4px;">All caught up</div>
+          <span style="font-size: 0.76rem;">No milestone deadlines or urgent interviews right now.</span>
         </div>
       `;
       return;
     }
 
     list.innerHTML = reminders.map(r => {
-      let icon = '📅';
-      if (r.type === 'milestone-today') icon = '⚡';
-      if (r.type === 'milestone-overdue') icon = '⚠️';
-      if (r.type === 'nudge-followup') icon = '💡';
+      let icon = icons.clock;
+      if (r.type === 'milestone-today') icon = icons.alertCircle;
+      if (r.type === 'nudge-followup') icon = icons.link;
 
       return `
         <div class="drawer-notification-item urgency-${r.urgency}" data-job-id="${r.jobId}">
           <div class="dn-icon">${icon}</div>
           <div class="dn-content">
-            <h5 class="dn-title">${r.title}</h5>
-            <p class="dn-msg">${r.message}</p>
+            <div class="dn-title">${r.title}</div>
+            <div class="dn-msg">${r.message}</div>
             <div class="dn-actions">
-              <button class="btn btn-primary btn-xs btn-open-job-from-notif" data-job-id="${r.jobId}">View Application</button>
+              <button class="btn btn-secondary btn-xs btn-open-job-from-notif" data-job-id="${r.jobId}">View</button>
             </div>
           </div>
         </div>
@@ -220,20 +225,17 @@ class App {
 
     list.querySelectorAll('.btn-open-job-from-notif').forEach(btn => {
       btn.addEventListener('click', () => {
-        const drawer = document.getElementById('notification-drawer');
-        const backdrop = document.getElementById('drawer-backdrop');
-        drawer.classList.remove('open');
-        backdrop.classList.remove('open');
+        document.getElementById('notification-drawer').classList.remove('open');
+        document.getElementById('drawer-backdrop').classList.remove('open');
         const job = storage.getJob(btn.dataset.jobId);
         if (job) this.openDetailModal(job);
       });
     });
 
-    // Request native permission button
     const permBtn = document.getElementById('btn-enable-native-notifs');
     if (permBtn) {
       if ('Notification' in window && Notification.permission === 'granted') {
-        permBtn.textContent = '✓ System Notifications Active';
+        permBtn.textContent = 'Alerts Active';
         permBtn.disabled = true;
       } else {
         permBtn.textContent = 'Enable Browser Alerts';
@@ -246,7 +248,7 @@ class App {
     }
   }
 
-  // ==================== MODAL MANAGEMENT ====================
+  // ==================== MODALS ====================
 
   setupModals() {
     const editModal = document.getElementById('job-edit-modal');
@@ -261,18 +263,15 @@ class App {
       });
     });
 
-    // Save job form submit
     document.getElementById('job-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
       this.handleSaveJobForm();
     });
 
-    // Add prep checklist item inside edit form
     document.getElementById('btn-add-form-checklist-item')?.addEventListener('click', () => {
       this.appendFormChecklistRow('', false);
     });
 
-    // Cloud modal submit
     document.getElementById('cloud-sync-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       await this.handleSaveCloudConfig();
@@ -280,11 +279,10 @@ class App {
 
     document.getElementById('btn-disconnect-cloud')?.addEventListener('click', () => {
       cloudSync.disconnect();
-      notifications.showToast('Disconnected from Supabase. Reverted to Local Vault.', 'info');
+      notifications.showToast('Reverted to Local Vault', 'info');
       cloudModal.classList.remove('active');
     });
 
-    // Cloud modal backup triggers
     document.getElementById('btn-modal-export-json')?.addEventListener('click', () => {
       storage.exportJSON();
       notifications.showToast('Downloaded JSON backup', 'success');
@@ -295,7 +293,6 @@ class App {
       notifications.showToast('Downloaded CSV / Excel file', 'success');
     });
 
-    // File import trigger
     const fileInput = document.getElementById('import-file-input');
     document.getElementById('btn-modal-import-file')?.addEventListener('click', () => {
       fileInput.click();
@@ -309,11 +306,11 @@ class App {
         try {
           const parsed = JSON.parse(event.target.result);
           const count = storage.importData(parsed);
-          notifications.showToast(`Imported ${count} applications successfully!`, 'success');
+          notifications.showToast(`Imported ${count} applications`, 'success');
           cloudModal.classList.remove('active');
           this.refreshCurrentView();
-        } catch (err) {
-          notifications.showToast('Failed to parse backup file. Must be valid JSON.', 'warning');
+        } catch {
+          notifications.showToast('Invalid JSON file format', 'warning');
         }
       };
       reader.readAsText(file);
@@ -324,7 +321,7 @@ class App {
     this.editingJob = job;
     const modal = document.getElementById('job-edit-modal');
     const title = document.getElementById('edit-modal-title');
-    title.textContent = job ? `Edit: ${job.company}` : 'Add New Application';
+    title.textContent = job ? `Edit: ${job.company}` : 'Add Application';
 
     document.getElementById('form-job-id').value = job ? job.id : '';
     document.getElementById('form-company').value = job ? job.company : '';
@@ -341,13 +338,12 @@ class App {
     document.getElementById('form-link').value = job ? (job.jobLink || '') : '';
     document.getElementById('form-notes').value = job ? (job.notes || '') : '';
 
-    // Checklist rows
     const checklistContainer = document.getElementById('form-checklist-container');
     checklistContainer.innerHTML = '';
     const checklist = job && job.prepChecklist ? job.prepChecklist : [];
     if (checklist.length === 0) {
-      this.appendFormChecklistRow('Review DSA & algorithms', false);
-      this.appendFormChecklistRow('Research company & tech stack', false);
+      this.appendFormChecklistRow('Review DSA & system design', false);
+      this.appendFormChecklistRow('Review company past questions', false);
     } else {
       checklist.forEach(item => this.appendFormChecklistRow(item.text, item.done));
     }
@@ -361,8 +357,8 @@ class App {
     row.className = 'form-checklist-row';
     row.innerHTML = `
       <input type="checkbox" class="form-chk-done" ${done ? 'checked' : ''} />
-      <input type="text" class="form-chk-text form-input" placeholder="e.g. Study DSA, System design" value="${text.replace(/"/g, '&quot;')}" />
-      <button type="button" class="btn-remove-chk">&times;</button>
+      <input type="text" class="form-chk-text form-input" placeholder="e.g. Study DSA, review resume" value="${text.replace(/"/g, '&quot;')}" />
+      <button type="button" class="btn-remove-chk" title="Remove">&times;</button>
     `;
     row.querySelector('.btn-remove-chk').onclick = () => row.remove();
     container.appendChild(row);
@@ -376,7 +372,6 @@ class App {
       return;
     }
 
-    // Collect checklist items
     const checklistItems = [];
     document.querySelectorAll('.form-checklist-row').forEach(row => {
       const text = row.querySelector('.form-chk-text').value.trim();
@@ -408,21 +403,17 @@ class App {
       prepChecklist: checklistItems
     };
 
-    // Keep existing interview rounds if editing
     if (this.editingJob && this.editingJob.interviewRounds) {
       jobData.interviewRounds = this.editingJob.interviewRounds;
     }
 
     const saved = storage.saveJob(jobData);
 
-    // Sync to cloud if connected
     if (cloudSync.syncStatus === 'connected') {
       cloudSync.pushSingleJob(saved);
     }
 
-    notifications.showToast(id ? `Updated ${company}` : `Added ${company} to tracker!`, 'success');
-    notifications.playChime('success');
-
+    notifications.showToast(id ? `Updated ${company}` : `Added ${company}`, 'success');
     document.getElementById('job-edit-modal').classList.remove('active');
     this.refreshCurrentView();
   }
@@ -433,67 +424,64 @@ class App {
 
     let daysActive = '-';
     if (job.appliedDate) {
-      daysActive = `${Math.floor((new Date() - new Date(job.appliedDate)) / (1000 * 60 * 60 * 24))} days active`;
+      daysActive = `${Math.floor((new Date() - new Date(job.appliedDate)) / (1000 * 60 * 60 * 24))}d active`;
     }
 
     const gCalUrl = notifications.getGoogleCalendarUrl(job);
     const stageObj = STAGES.find(s => s.id === job.status) || STAGES[1];
 
     content.innerHTML = `
-      <div class="detail-header-card" style="border-left: 5px solid ${stageObj.color};">
+      <div class="detail-header-card">
         <div class="dh-top">
           <div>
-            <h2 class="dh-company">${this.escape(job.company)}</h2>
+            <div class="dh-company">${this.escape(job.company)}</div>
             <div class="dh-role">${this.escape(job.role || 'Unspecified Role')}</div>
           </div>
-          <span class="dh-status-badge" style="background: ${stageObj.color}22; color: ${stageObj.color}; border: 1px solid ${stageObj.color};">
-            ${stageObj.icon} ${stageObj.label}
+          <span class="dh-status-badge" style="background: ${stageObj.color}22; color: ${stageObj.color}; border: 1px solid ${stageObj.color}44;">
+            ${stageObj.label}
           </span>
         </div>
         <div class="dh-meta-row">
-          <span>💰 <strong>${this.escape(job.packageLpa || 'Not Disclosed')}</strong></span>
-          <span>📍 <strong>${this.escape(job.location || job.workMode || 'On-site')}</strong></span>
-          <span>📅 Applied: <strong>${job.appliedDate || '-'}</strong> (${daysActive})</span>
-          <span>🏷️ Channel: <strong>${this.escape(job.channel || 'Direct')}</strong></span>
+          <span>Package: <strong>${this.escape(job.packageLpa || 'Not Disclosed')}</strong></span>
+          <span>Location: <strong>${this.escape(job.location || job.workMode || 'On-site')}</strong></span>
+          <span>Applied: <strong>${job.appliedDate || '-'}</strong> (${daysActive})</span>
+          <span>Channel: <strong>${this.escape(job.channel || 'Direct')}</strong></span>
         </div>
       </div>
 
-      <!-- Milestone Banner -->
       ${job.nextMilestoneDate ? `
         <div class="detail-milestone-box">
-          <div class="dmb-left">
-            <div class="dmb-title">⏰ Next Milestone: ${this.escape(job.milestoneType || 'Milestone')}</div>
-            <div class="dmb-time">${new Date(job.nextMilestoneDate).toLocaleString(undefined, { dateStyle: 'full', timeStyle: 'short' })}</div>
+          <div>
+            <div class="dmb-title">${icons.clock} Next Milestone: ${this.escape(job.milestoneType || 'Milestone')}</div>
+            <div class="dmb-time">${new Date(job.nextMilestoneDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</div>
           </div>
-          <div class="dmb-right">
+          <div style="display: flex; gap: 6px;">
             ${gCalUrl ? `
-              <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-                + Google Calendar
+              <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs">
+                + Google Cal
               </a>
             ` : ''}
-            <button class="btn btn-secondary btn-sm" id="btn-detail-ics">
-              Download .ics
+            <button class="btn btn-secondary btn-xs" id="btn-detail-ics">
+              ${icons.download} .ics
             </button>
           </div>
         </div>
       ` : ''}
 
-      <!-- Quick Action Buttons -->
       <div class="detail-quick-actions">
         ${job.jobLink ? `
-          <a href="${this.escape(job.jobLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
-            Open Job Application Portal ↗
+          <a href="${this.escape(job.jobLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-xs">
+            ${icons.link} Job Portal
           </a>
         ` : ''}
-        <button class="btn btn-secondary btn-sm" id="btn-detail-edit">Edit Application</button>
-        <button class="btn btn-secondary btn-sm" id="btn-detail-delete" style="color: #ef4444;">Delete</button>
+        <button class="btn btn-secondary btn-xs" id="btn-detail-edit">${icons.pencil} Edit</button>
+        <button class="btn btn-secondary btn-xs" id="btn-detail-delete" style="color: var(--accent-rose);">${icons.trash} Delete</button>
       </div>
 
-      <!-- Prep Checklist -->
       <div class="detail-section">
-        <h3>Preparation Tasks (${job.prepChecklist ? job.prepChecklist.length : 0})</h3>
+        <h3>Preparation Tasks</h3>
         ${(!job.prepChecklist || job.prepChecklist.length === 0) ? `
-          <p class="text-muted text-sm">No preparation tasks configured. Click Edit Application to add study goals.</p>
+          <div class="text-muted" style="font-size: 0.78rem;">No preparation tasks. Click Edit to add tasks.</div>
         ` : `
           <div class="detail-checklist">
             ${job.prepChecklist.map(item => `
@@ -506,16 +494,14 @@ class App {
         `}
       </div>
 
-      <!-- Notes -->
       <div class="detail-section">
         <h3>Notes & Strategy</h3>
         <div class="detail-notes-card">
-          ${job.notes ? this.escape(job.notes).replace(/\n/g, '<br>') : '<span class="text-muted">No notes recorded yet.</span>'}
+          ${job.notes ? this.escape(job.notes).replace(/\n/g, '<br>') : '<span class="text-muted">No notes recorded.</span>'}
         </div>
       </div>
     `;
 
-    // Attach listeners
     content.querySelector('#btn-detail-ics')?.addEventListener('click', () => {
       notifications.downloadIcsFile(job);
     });
@@ -546,12 +532,8 @@ class App {
           if (item) {
             item.done = e.target.checked;
             storage.saveJob(currentJob);
-            notifications.playChime('success');
             const span = e.target.nextElementSibling;
-            if (span) {
-              if (item.done) span.classList.add('item-done');
-              else span.classList.remove('item-done');
-            }
+            if (span) span.classList.toggle('item-done', item.done);
           }
         }
       });
@@ -574,26 +556,25 @@ class App {
     const statusText = document.getElementById('cloud-modal-status-text');
 
     if (!url || !key) {
-      notifications.showToast('Please provide both Supabase URL and Anon Key', 'warning');
+      notifications.showToast('Please provide both URL and Key', 'warning');
       return;
     }
 
-    statusText.textContent = 'Connecting and syncing database...';
-    statusText.style.color = '#38bdf8';
+    statusText.textContent = 'Connecting to Supabase...';
+    statusText.style.color = '#0ea5e9';
 
     const res = await cloudSync.connect(url, key);
     if (res.success) {
-      statusText.textContent = '✓ Connected and verified with Supabase cloud!';
+      statusText.textContent = 'Connected and synced with Supabase';
       statusText.style.color = '#10b981';
-      notifications.showToast('Supabase Cloud Sync is now active!', 'success');
-      notifications.playChime('success');
+      notifications.showToast('Supabase Cloud Sync active', 'success');
       setTimeout(() => {
         document.getElementById('cloud-sync-modal').classList.remove('active');
-      }, 1200);
+      }, 1000);
       this.refreshCurrentView();
     } else {
-      statusText.textContent = `Error: ${res.error}`;
-      statusText.style.color = '#ef4444';
+      statusText.textContent = res.error;
+      statusText.style.color = '#f43f5e';
       notifications.showToast(res.error, 'warning');
     }
   }
@@ -606,7 +587,6 @@ class App {
   }
 }
 
-// Bootstrap on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new App();
 });

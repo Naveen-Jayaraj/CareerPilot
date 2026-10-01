@@ -1,9 +1,9 @@
 /**
- * Milestone & Interview Calendar View
- * Monthly interactive view showing all tests, interviews, and deadlines.
+ * Calendar View - Linear Style (Pure SVG icons, clean grid)
  */
 import { storage } from './storage.js';
 import { notifications } from './notifications.js';
+import { icons } from './icons.js';
 
 export class CalendarView {
   constructor(container, onEditJob, onOpenDetail) {
@@ -22,7 +22,6 @@ export class CalendarView {
     ];
 
     const jobs = storage.getJobs();
-    // Gather all events with dates
     const events = [];
     jobs.forEach(job => {
       if (job.nextMilestoneDate) {
@@ -32,8 +31,7 @@ export class CalendarView {
             date: d,
             dateKey: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
             job,
-            title: `${job.company}: ${job.milestoneType || 'Milestone'}`,
-            type: 'milestone'
+            title: `${job.company}: ${job.milestoneType || 'Milestone'}`
           });
         }
       }
@@ -44,30 +42,31 @@ export class CalendarView {
     const prevMonthTotalDays = new Date(year, month, 0).getDate();
 
     this.container.innerHTML = `
-      <div class="calendar-view-header">
-        <div class="cal-title-group">
-          <h2>${monthNames[month]} ${year}</h2>
-          <span class="cal-subtitle">Scheduled interviews, assessments & milestone deadlines</span>
+      <div class="calendar-header-bar">
+        <div>
+          <h2 style="font-size: 1.15rem; font-weight: 700;">${monthNames[month]} ${year}</h2>
+          <span style="font-size: 0.78rem; color: var(--text-secondary);">Scheduled tests, interviews, and deadlines</span>
         </div>
-        <div class="cal-controls">
-          <button id="cal-prev" class="btn btn-secondary btn-icon" title="Previous Month">❮</button>
-          <button id="cal-today" class="btn btn-secondary btn-sm">Today</button>
-          <button id="cal-next" class="btn btn-secondary btn-icon" title="Next Month">❯</button>
+        <div class="cal-nav-btns">
+          <button id="cal-prev" class="btn btn-secondary btn-xs">Prev</button>
+          <button id="cal-today" class="btn btn-secondary btn-xs">Today</button>
+          <button id="cal-next" class="btn btn-secondary btn-xs">Next</button>
         </div>
       </div>
 
-      <div class="calendar-grid-container">
-        <div class="calendar-weekdays">
+      <div class="cal-card">
+        <div class="cal-weekdays-grid">
           <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
         </div>
-        <div class="calendar-days-grid" id="calendar-days-grid"></div>
+        <div class="cal-days-matrix" id="calendar-days-grid"></div>
       </div>
 
-      <div class="calendar-upcoming-tray">
-        <div class="tray-header">
-          <h3>Upcoming Milestones (${events.filter(e => e.date >= new Date()).length})</h3>
+      <div class="cal-upcoming-card">
+        <div class="cal-upcoming-header">
+          <span style="font-weight: 600; font-size: 0.85rem;">Upcoming Milestones</span>
+          <span class="column-count">${events.filter(e => e.date >= new Date()).length}</span>
         </div>
-        <div class="tray-list" id="calendar-tray-list"></div>
+        <div class="cal-upcoming-list" id="calendar-tray-list"></div>
       </div>
     `;
 
@@ -75,42 +74,41 @@ export class CalendarView {
     const today = new Date();
     const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-    // Previous month padding days
+    // Prev month padding
     for (let i = firstDayIndex - 1; i >= 0; i--) {
-      const dayNum = prevMonthTotalDays - i;
       const cell = document.createElement('div');
-      cell.className = 'calendar-day-cell cal-day-outside';
-      cell.innerHTML = `<span class="day-num">${dayNum}</span>`;
+      cell.className = 'cal-day-cell cal-day-outside';
+      cell.innerHTML = `<span class="day-num">${prevMonthTotalDays - i}</span>`;
       daysGrid.appendChild(cell);
     }
 
-    // Current month days
+    // Days
     for (let d = 1; d <= totalDays; d++) {
       const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const cell = document.createElement('div');
-      cell.className = 'calendar-day-cell';
+      cell.className = 'cal-day-cell';
       if (dateKey === todayKey) cell.classList.add('cal-day-today');
 
       const dayEvents = events.filter(e => e.dateKey === dateKey);
 
       let eventsHtml = '';
       if (dayEvents.length > 0) {
-        eventsHtml = `<div class="day-event-dots">
+        eventsHtml = `<div class="day-events-wrap">
           ${dayEvents.map(ev => `
-            <div class="day-event-badge" data-job-id="${ev.job.id}" title="${this.escape(ev.title)}">
-              <span class="badge-dot"></span>
-              <span class="badge-text">${this.escape(ev.job.company)}</span>
+            <div class="cal-event-chip" data-job-id="${ev.job.id}" title="${this.escape(ev.title)}">
+              <span class="event-indicator"></span>
+              <span class="event-name">${this.escape(ev.job.company)}</span>
             </div>
           `).join('')}
         </div>`;
       }
 
       cell.innerHTML = `
-        <div class="day-header"><span class="day-num">${d}</span></div>
+        <div class="day-num-bar"><span class="day-num">${d}</span></div>
         ${eventsHtml}
       `;
 
-      cell.querySelectorAll('.day-event-badge').forEach(b => {
+      cell.querySelectorAll('.cal-event-chip').forEach(b => {
         b.addEventListener('click', (e) => {
           e.stopPropagation();
           const job = storage.getJob(b.dataset.jobId);
@@ -121,14 +119,14 @@ export class CalendarView {
       daysGrid.appendChild(cell);
     }
 
-    // Render upcoming list in tray
+    // Upcoming tray
     const trayList = this.container.querySelector('#calendar-tray-list');
     const sortedUpcoming = events
       .filter(e => e.date >= new Date(Date.now() - 24 * 60 * 60 * 1000))
       .sort((a, b) => a.date - b.date);
 
     if (sortedUpcoming.length === 0) {
-      trayList.innerHTML = `<div class="tray-empty">No milestones scheduled for this month. Set a milestone date on any application!</div>`;
+      trayList.innerHTML = `<div class="tray-empty">No milestones scheduled this month.</div>`;
     } else {
       trayList.innerHTML = sortedUpcoming.map(ev => {
         const timeStr = ev.date.toLocaleDateString(undefined, { 
@@ -137,22 +135,22 @@ export class CalendarView {
         const gCalUrl = notifications.getGoogleCalendarUrl(ev.job);
 
         return `
-          <div class="tray-item" data-job-id="${ev.job.id}">
-            <div class="tray-item-left">
-              <span class="tray-badge-type">${this.escape(ev.job.milestoneType || 'Milestone')}</span>
-              <strong>${this.escape(ev.job.company)}</strong> - <span>${this.escape(ev.job.role || 'Role')}</span>
+          <div class="cal-tray-row" data-job-id="${ev.job.id}">
+            <div class="cal-tray-left">
+              <div class="tray-type-badge">${this.escape(ev.job.milestoneType || 'Milestone')}</div>
+              <div class="tray-title"><strong>${this.escape(ev.job.company)}</strong> - <span>${this.escape(ev.job.role || 'Role')}</span></div>
               <div class="tray-date">${timeStr}</div>
             </div>
-            <div class="tray-item-right">
+            <div class="cal-tray-right">
               ${gCalUrl ? `
-                <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" title="Add to Google Calendar">
+                <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs" title="Google Calendar">
                   + Google Cal
                 </a>
               ` : ''}
-              <button class="btn btn-secondary btn-sm btn-ics-tray" data-job-id="${ev.job.id}" title="Download .ics file">
-                .ics
+              <button class="btn btn-secondary btn-xs btn-ics-tray" data-job-id="${ev.job.id}" title="Download .ics">
+                ${icons.calendar} .ics
               </button>
-              <button class="btn btn-primary btn-sm btn-view-tray" data-job-id="${ev.job.id}">
+              <button class="btn btn-primary btn-xs btn-view-tray" data-job-id="${ev.job.id}">
                 View
               </button>
             </div>
@@ -175,18 +173,17 @@ export class CalendarView {
       });
     }
 
-    // Attach navigation listeners
-    this.container.querySelector('#cal-prev').addEventListener('click', () => {
+    this.container.querySelector('#cal-prev')?.addEventListener('click', () => {
       this.currentDate = new Date(year, month - 1, 1);
       this.render();
     });
 
-    this.container.querySelector('#cal-next').addEventListener('click', () => {
+    this.container.querySelector('#cal-next')?.addEventListener('click', () => {
       this.currentDate = new Date(year, month + 1, 1);
       this.render();
     });
 
-    this.container.querySelector('#cal-today').addEventListener('click', () => {
+    this.container.querySelector('#cal-today')?.addEventListener('click', () => {
       this.currentDate = new Date();
       this.render();
     });

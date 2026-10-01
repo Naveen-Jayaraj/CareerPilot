@@ -1,6 +1,5 @@
 /**
- * Career Analytics & Metrics Dashboard
- * Elevated replacement of the Excel summary cards with interactive charts and KPI metrics.
+ * Career Analytics & Compensation Insights - Linear Style
  */
 import { storage } from './storage.js';
 
@@ -13,21 +12,18 @@ export class StatsView {
     const jobs = storage.getJobs();
     const stats = storage.getStats();
 
-    // Work mode breakdown
     const modes = { 'On-site': 0, 'Hybrid': 0, 'Remote': 0 };
     jobs.forEach(j => {
       const mode = j.workMode || 'On-site';
       modes[mode] = (modes[mode] || 0) + 1;
     });
 
-    // Channel breakdown
     const channels = {};
     jobs.forEach(j => {
       const ch = j.channel || 'Direct / Other';
       channels[ch] = (channels[ch] || 0) + 1;
     });
 
-    // Funnel stats
     const applied = jobs.length;
     const shortlisted = jobs.filter(j => ['Shortlisted', 'Exam', 'Interview', 'Offer', 'Placed'].includes(j.status)).length;
     const evaluated = jobs.filter(j => ['Exam', 'Interview', 'Offer', 'Placed'].includes(j.status)).length;
@@ -38,135 +34,112 @@ export class StatsView {
     const offerPct = applied > 0 ? Math.round((offers / applied) * 100) : 0;
 
     this.container.innerHTML = `
-      <div class="stats-header">
+      <div class="stats-header-bar">
         <div>
-          <h2>Career Analytics & Metrics</h2>
-          <span class="stats-subtitle">Real-time pipeline performance & salary analytics</span>
+          <h2 style="font-size: 1.15rem; font-weight: 700;">Career Analytics & Placement Funnel</h2>
+          <span style="font-size: 0.78rem; color: var(--text-secondary);">Conversion rates, compensation breakdown, and work mode ratios</span>
         </div>
       </div>
 
-      <!-- KPI Summary Cards (Elevated from Excel header) -->
-      <div class="kpi-grid">
-        <div class="kpi-card card-glow-blue">
-          <div class="kpi-label">TOTAL APPLIED</div>
-          <div class="kpi-value">${stats.total}</div>
-          <div class="kpi-desc">All applications logged</div>
+      <!-- KPI Ribbon -->
+      <div class="metric-ribbon">
+        <div class="metric-card">
+          <span class="metric-card-label">Total Applied</span>
+          <span class="metric-card-val">${stats.total}</span>
+          <span class="metric-card-sub">All submissions</span>
         </div>
-
-        <div class="kpi-card card-glow-indigo">
-          <div class="kpi-label">SHORTLISTED</div>
-          <div class="kpi-value">${stats.shortlisted}</div>
-          <div class="kpi-desc">Screening passed (${shortlistPct}%)</div>
+        <div class="metric-card">
+          <span class="metric-card-label">Shortlisted</span>
+          <span class="metric-card-val" style="color: #6366f1;">${stats.shortlisted}</span>
+          <span class="metric-card-sub">${shortlistPct}% pass rate</span>
         </div>
-
-        <div class="kpi-card card-glow-purple">
-          <div class="kpi-label">EXAMS & INTERVIEWS</div>
-          <div class="kpi-value">${stats.interviewCount}</div>
-          <div class="kpi-desc">Active evaluations (${interviewPct}%)</div>
+        <div class="metric-card">
+          <span class="metric-card-label">Interviews / OA</span>
+          <span class="metric-card-val" style="color: #f59e0b;">${stats.interviewCount}</span>
+          <span class="metric-card-sub">${interviewPct}% evaluation</span>
         </div>
-
-        <div class="kpi-card card-glow-emerald">
-          <div class="kpi-label">PLACED (OFFERS)</div>
-          <div class="kpi-value">${stats.offers}</div>
-          <div class="kpi-desc">Offers secured</div>
+        <div class="metric-card">
+          <span class="metric-card-label">Placed (Offers)</span>
+          <span class="metric-card-val" style="color: #10b981;">${stats.offers}</span>
+          <span class="metric-card-sub">Secured offers</span>
         </div>
-
-        <div class="kpi-card card-glow-amber">
-          <div class="kpi-label">TOP OFFERED LPA</div>
-          <div class="kpi-value">${stats.maxLpa}</div>
-          <div class="kpi-desc">Peak compensation</div>
+        <div class="metric-card">
+          <span class="metric-card-label">Peak LPA</span>
+          <span class="metric-card-val" style="color: #0ea5e9;">${stats.maxLpa}</span>
+          <span class="metric-card-sub">Top compensation</span>
         </div>
-
-        <div class="kpi-card card-glow-cyan">
-          <div class="kpi-label">ACTIVE PIPELINE</div>
-          <div class="kpi-value">${stats.activePipeline}</div>
-          <div class="kpi-desc">In-flight opportunities</div>
+        <div class="metric-card">
+          <span class="metric-card-label">Active Pipeline</span>
+          <span class="metric-card-val">${stats.activePipeline}</span>
+          <span class="metric-card-sub">Pending outcomes</span>
         </div>
       </div>
 
-      <!-- Charts & Visual Insights -->
-      <div class="analytics-charts-grid">
+      <!-- Analytics Grid -->
+      <div class="analytics-panels-grid">
         <!-- Pipeline Funnel -->
-        <div class="analytics-card">
-          <div class="card-title">Recruitment Pipeline Funnel</div>
-          <div class="funnel-container">
-            <div class="funnel-step">
-              <div class="funnel-bar" style="width: 100%; background: #38bdf8;">
-                <span>Total Applications: ${applied}</span>
-                <span>100%</span>
-              </div>
+        <div class="analytics-panel">
+          <div class="panel-header">Conversion Funnel</div>
+          <div class="linear-funnel">
+            <div class="funnel-row">
+              <div class="funnel-label"><span>Applied</span><span class="font-mono">${applied} (100%)</span></div>
+              <div class="funnel-track"><div class="funnel-bar" style="width: 100%; background: #0ea5e9;"></div></div>
             </div>
-            <div class="funnel-step">
-              <div class="funnel-bar" style="width: ${Math.max(shortlistPct, 12)}%; background: #818cf8;">
-                <span>Shortlisted / Passed Resume: ${shortlisted}</span>
-                <span>${shortlistPct}%</span>
-              </div>
+            <div class="funnel-row">
+              <div class="funnel-label"><span>Shortlisted</span><span class="font-mono">${shortlisted} (${shortlistPct}%)</span></div>
+              <div class="funnel-track"><div class="funnel-bar" style="width: ${Math.max(shortlistPct, 8)}%; background: #6366f1;"></div></div>
             </div>
-            <div class="funnel-step">
-              <div class="funnel-bar" style="width: ${Math.max(interviewPct, 12)}%; background: #a855f7;">
-                <span>OA & Interviews: ${evaluated}</span>
-                <span>${interviewPct}%</span>
-              </div>
+            <div class="funnel-row">
+              <div class="funnel-label"><span>OA & Interviews</span><span class="font-mono">${evaluated} (${interviewPct}%)</span></div>
+              <div class="funnel-track"><div class="funnel-bar" style="width: ${Math.max(interviewPct, 8)}%; background: #f59e0b;"></div></div>
             </div>
-            <div class="funnel-step">
-              <div class="funnel-bar" style="width: ${Math.max(offerPct, 10)}%; background: #10b981;">
-                <span>Offers / Placed: ${offers}</span>
-                <span>${offerPct}%</span>
-              </div>
+            <div class="funnel-row">
+              <div class="funnel-label"><span>Offers</span><span class="font-mono">${offers} (${offerPct}%)</span></div>
+              <div class="funnel-track"><div class="funnel-bar" style="width: ${Math.max(offerPct, 8)}%; background: #10b981;"></div></div>
             </div>
           </div>
         </div>
 
-        <!-- Work Mode Breakdown -->
-        <div class="analytics-card">
-          <div class="card-title">Work Mode Distribution</div>
-          <div class="distribution-bars">
+        <!-- Work Mode Ratio -->
+        <div class="analytics-panel">
+          <div class="panel-header">Work Mode Distribution</div>
+          <div class="ratio-bars-list">
             ${Object.entries(modes).map(([mode, count]) => {
               const pct = applied > 0 ? Math.round((count / applied) * 100) : 0;
               return `
-                <div class="dist-row">
-                  <div class="dist-header">
-                    <span>${mode}</span>
-                    <span>${count} (${pct}%)</span>
-                  </div>
-                  <div class="dist-track">
-                    <div class="dist-fill fill-${mode.toLowerCase().replace('-', '')}" style="width: ${pct}%;"></div>
-                  </div>
+                <div class="ratio-item">
+                  <div class="ratio-label"><span>${mode}</span><span class="font-mono">${count} (${pct}%)</span></div>
+                  <div class="ratio-track"><div class="ratio-fill" style="width: ${pct}%;"></div></div>
                 </div>
               `;
             }).join('')}
           </div>
         </div>
 
-        <!-- Channel / Mode Source -->
-        <div class="analytics-card">
-          <div class="card-title">Application Channels</div>
-          <div class="distribution-bars">
+        <!-- Application Channels -->
+        <div class="analytics-panel">
+          <div class="panel-header">Channel & Mode Origin</div>
+          <div class="ratio-bars-list">
             ${Object.entries(channels).map(([ch, count]) => {
               const pct = applied > 0 ? Math.round((count / applied) * 100) : 0;
               return `
-                <div class="dist-row">
-                  <div class="dist-header">
-                    <span>${this.escape(ch)}</span>
-                    <span>${count} (${pct}%)</span>
-                  </div>
-                  <div class="dist-track">
-                    <div class="dist-fill fill-cyan" style="width: ${pct}%;"></div>
-                  </div>
+                <div class="ratio-item">
+                  <div class="ratio-label"><span>${this.escape(ch)}</span><span class="font-mono">${count} (${pct}%)</span></div>
+                  <div class="ratio-track"><div class="ratio-fill" style="width: ${pct}%; background: #6366f1;"></div></div>
                 </div>
               `;
             }).join('')}
           </div>
         </div>
 
-        <!-- Package Compensation List -->
-        <div class="analytics-card">
-          <div class="card-title">Compensation Overview (LPA)</div>
-          <div class="salary-list">
+        <!-- Compensation Table -->
+        <div class="analytics-panel">
+          <div class="panel-header">Compensation Breakdown</div>
+          <div class="comp-list">
             ${jobs.map(j => `
-              <div class="salary-item">
-                <span class="salary-company">${this.escape(j.company)}</span>
-                <span class="salary-tag">${this.escape(j.packageLpa || 'Not Disclosed')}</span>
+              <div class="comp-row">
+                <span class="comp-company">${this.escape(j.company)}</span>
+                <span class="package-chip">${this.escape(j.packageLpa || 'Not Disclosed')}</span>
               </div>
             `).join('')}
           </div>

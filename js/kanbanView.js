@@ -1,17 +1,18 @@
 /**
- * Kanban Pipeline View - Drag-and-Drop & Mobile Touch Friendly
+ * Kanban Pipeline View - Linear Style (No side-scroll lock, pure SVG icons)
  */
 import { storage } from './storage.js';
 import { notifications } from './notifications.js';
+import { icons } from './icons.js';
 
 export const STAGES = [
-  { id: 'Wishlist', label: 'Wishlist', color: '#94a3b8', icon: '⭐' },
-  { id: 'Applied', label: 'Applied', color: '#38bdf8', icon: '📨' },
-  { id: 'Shortlisted', label: 'Shortlisted', color: '#818cf8', icon: '🎯' },
-  { id: 'Exam', label: 'Exam / OA', color: '#f59e0b', icon: '📝' },
-  { id: 'Interview', label: 'Interview', color: '#a855f7', icon: '💼' },
-  { id: 'Offer', label: 'Offer / Placed', color: '#10b981', icon: '🎉' },
-  { id: 'Rejected', label: 'Rejected', color: '#ef4444', icon: '📁' }
+  { id: 'Wishlist', label: 'Wishlist', color: '#64748b' },
+  { id: 'Applied', label: 'Applied', color: '#0ea5e9' },
+  { id: 'Shortlisted', label: 'Shortlisted', color: '#6366f1' },
+  { id: 'Exam', label: 'OA / Exam', color: '#f59e0b' },
+  { id: 'Interview', label: 'Interview', color: '#8b5cf6' },
+  { id: 'Offer', label: 'Offer', color: '#10b981' },
+  { id: 'Rejected', label: 'Rejected', color: '#f43f5e' }
 ];
 
 export class KanbanView {
@@ -20,57 +21,132 @@ export class KanbanView {
     this.onEditJob = onEditJob;
     this.onOpenDetail = onOpenDetail;
     this.draggedJobId = null;
+    this.activeFilter = 'ALL';
   }
 
   render() {
     const jobs = storage.getJobs();
+    const stats = storage.getStats();
+
     this.container.innerHTML = `
-      <div class="kanban-header-bar">
-        <div class="kanban-title-group">
-          <h2>Application Pipeline</h2>
-          <span class="kanban-subtitle">Drag & drop or tap to advance applications</span>
+      <!-- Executive Metric Ribbon -->
+      <div class="metric-ribbon">
+        <div class="metric-card">
+          <span class="metric-card-label">Total Applied</span>
+          <span class="metric-card-val">${stats.total}</span>
+          <span class="metric-card-sub">All logged</span>
         </div>
-        <div class="kanban-actions">
-          <input type="text" id="kanban-search" class="search-input" placeholder="Search company or role..." />
+        <div class="metric-card">
+          <span class="metric-card-label">Shortlisted</span>
+          <span class="metric-card-val" style="color: #6366f1;">${stats.shortlisted}</span>
+          <span class="metric-card-sub">Screened</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-card-label">Interviews & OA</span>
+          <span class="metric-card-val" style="color: #f59e0b;">${stats.interviewCount}</span>
+          <span class="metric-card-sub">Active tests</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-card-label">Offers</span>
+          <span class="metric-card-val" style="color: #10b981;">${stats.offers}</span>
+          <span class="metric-card-sub">Secured</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-card-label">Peak LPA</span>
+          <span class="metric-card-val" style="color: #0ea5e9;">${stats.maxLpa}</span>
+          <span class="metric-card-sub">Top compensation</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-card-label">In-Flight</span>
+          <span class="metric-card-val">${stats.activePipeline}</span>
+          <span class="metric-card-sub">Active pipeline</span>
+        </div>
+      </div>
+
+      <!-- Action Toolbar -->
+      <div class="kanban-toolbar">
+        <div class="toolbar-left">
+          <div class="search-input-wrap">
+            <span class="search-icon">${icons.search}</span>
+            <input type="text" id="kanban-search" class="search-input" placeholder="Search company, role, channel..." />
+          </div>
+
+          <div class="filter-pills" id="kanban-filter-pills">
+            <button class="pill-btn active" data-filter="ALL">All Stages</button>
+            <button class="pill-btn" data-filter="ACTIVE">Active Pipeline</button>
+            <button class="pill-btn" data-filter="INTERVIEW">Interviews & Tests</button>
+            <button class="pill-btn" data-filter="OFFERS">Offers</button>
+          </div>
+        </div>
+
+        <div class="toolbar-right">
           <button id="kanban-add-btn" class="btn btn-primary">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Add Job
+            ${icons.plus}
+            <span>Add Application</span>
           </button>
         </div>
       </div>
-      <div class="kanban-board" id="kanban-board"></div>
+
+      <!-- Kanban Responsive Grid -->
+      <div class="kanban-grid-container" id="kanban-board"></div>
     `;
 
-    document.getElementById('kanban-search').addEventListener('input', (e) => {
+    // Filter pills handler
+    this.container.querySelectorAll('.pill-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.container.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.activeFilter = btn.dataset.filter;
+        this.renderColumns(jobs);
+      });
+    });
+
+    document.getElementById('kanban-search')?.addEventListener('input', (e) => {
       this.filterCards(e.target.value.toLowerCase());
     });
 
-    document.getElementById('kanban-add-btn').addEventListener('click', () => {
+    document.getElementById('kanban-add-btn')?.addEventListener('click', () => {
       this.onEditJob(null);
     });
 
-    const board = document.getElementById('kanban-board');
+    this.renderColumns(jobs);
+  }
 
-    STAGES.forEach(stage => {
+  renderColumns(jobs) {
+    const board = document.getElementById('kanban-board');
+    if (!board) return;
+    board.innerHTML = '';
+
+    // Filter stages based on selected pill
+    let visibleStages = STAGES;
+    if (this.activeFilter === 'ACTIVE') {
+      visibleStages = STAGES.filter(s => ['Applied', 'Shortlisted', 'Exam', 'Interview'].includes(s.id));
+    } else if (this.activeFilter === 'INTERVIEW') {
+      visibleStages = STAGES.filter(s => ['Exam', 'Interview'].includes(s.id));
+    } else if (this.activeFilter === 'OFFERS') {
+      visibleStages = STAGES.filter(s => ['Offer', 'Wishlist'].includes(s.id));
+    }
+
+    visibleStages.forEach(stage => {
       const stageJobs = jobs.filter(j => (j.status || 'Applied') === stage.id);
       const colEl = document.createElement('div');
-      colEl.className = 'kanban-col';
+      colEl.className = 'kanban-column';
       colEl.dataset.stage = stage.id;
 
       colEl.innerHTML = `
-        <div class="kanban-col-header" style="border-top: 3px solid ${stage.color};">
-          <div class="kanban-col-title">
-            <span class="stage-icon">${stage.icon}</span>
-            <span class="stage-name">${stage.label}</span>
-            <span class="stage-count">${stageJobs.length}</span>
+        <div class="kanban-column-header">
+          <div class="column-title-group">
+            <span class="column-status-dot" style="background: ${stage.color};"></span>
+            <span class="column-name">${stage.label}</span>
           </div>
+          <span class="column-count">${stageJobs.length}</span>
         </div>
-        <div class="kanban-card-list" data-stage="${stage.id}" id="col-${stage.id}"></div>
+        <div class="kanban-card-list" data-stage="${stage.id}"></div>
       `;
 
       const cardList = colEl.querySelector('.kanban-card-list');
 
-      // Drag and drop event listeners on column
+      // Drag & drop handlers
       cardList.addEventListener('dragover', (e) => {
         e.preventDefault();
         cardList.classList.add('drag-over');
@@ -85,8 +161,7 @@ export class KanbanView {
         cardList.classList.remove('drag-over');
         if (this.draggedJobId) {
           storage.updateJobStatus(this.draggedJobId, stage.id);
-          notifications.showToast(`Moved to ${stage.label}`, 'success');
-          notifications.playChime('success');
+          notifications.showToast(`Updated to ${stage.label}`, 'success');
           this.render();
         }
       });
@@ -99,7 +174,7 @@ export class KanbanView {
       if (stageJobs.length === 0) {
         const emptyState = document.createElement('div');
         emptyState.className = 'kanban-empty-drop';
-        emptyState.textContent = 'Drop cards here';
+        emptyState.textContent = 'Empty';
         cardList.appendChild(emptyState);
       }
 
@@ -107,16 +182,17 @@ export class KanbanView {
     });
   }
 
-  createCardElement(job, currentStage) {
+  createCardElement(job, stage) {
     const card = document.createElement('div');
     card.className = 'kanban-card';
     card.draggable = true;
     card.dataset.jobId = job.id;
 
-    // Calculate days active
-    let daysActive = 0;
+    // Days active
+    let daysActive = '0d';
     if (job.appliedDate) {
-      daysActive = Math.floor((new Date() - new Date(job.appliedDate)) / (1000 * 60 * 60 * 24));
+      const d = Math.floor((new Date() - new Date(job.appliedDate)) / (1000 * 60 * 60 * 24));
+      daysActive = `${d}d`;
     }
 
     // Milestone badge
@@ -124,62 +200,62 @@ export class KanbanView {
     if (job.nextMilestoneDate) {
       const mDate = new Date(job.nextMilestoneDate);
       const isPast = mDate < new Date();
-      const formattedDate = mDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      const formatted = mDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
       milestoneBadge = `
-        <div class="card-milestone ${isPast ? 'overdue' : 'upcoming'}">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          <span>${job.milestoneType || 'Milestone'}: ${formattedDate}</span>
+        <div class="card-milestone-pill ${isPast ? 'overdue' : 'upcoming'}">
+          ${icons.clock}
+          <span>${this.escape(job.milestoneType || 'Milestone')}: ${formatted}</span>
         </div>
       `;
     }
 
-    // Checklist progress
+    // Prep progress
     let checklistInfo = '';
     if (job.prepChecklist && job.prepChecklist.length > 0) {
-      const doneCount = job.prepChecklist.filter(c => c.done).length;
+      const done = job.prepChecklist.filter(c => c.done).length;
       checklistInfo = `
-        <div class="card-checklist-pill">
-          ✓ ${doneCount}/${job.prepChecklist.length} prep done
+        <div class="card-prep-tag">
+          ${icons.check} ${done}/${job.prepChecklist.length} prep
         </div>
       `;
     }
 
     card.innerHTML = `
-      <div class="card-top">
-        <h4 class="card-company">${this.escape(job.company)}</h4>
-        <div class="card-quick-actions">
-          <button class="btn-icon card-edit-btn" title="Edit Application">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-          </button>
+      <div class="card-header">
+        <div class="card-title-group">
+          <span class="card-company">${this.escape(job.company)}</span>
+          <span class="card-role">${this.escape(job.role || 'Role')}</span>
         </div>
+        <button class="card-edit-btn" title="Edit" aria-label="Edit">
+          ${icons.pencil}
+        </button>
       </div>
-      <div class="card-role">${this.escape(job.role || 'Position')}</div>
-      
-      <div class="card-tags">
-        ${job.packageLpa && job.packageLpa !== 'NA' ? `<span class="tag tag-salary">${this.escape(job.packageLpa)}</span>` : ''}
-        ${job.workMode ? `<span class="tag tag-mode">${this.escape(job.workMode)}</span>` : ''}
-        ${job.channel ? `<span class="tag tag-channel">${this.escape(job.channel)}</span>` : ''}
+
+      <div class="card-chips">
+        ${job.packageLpa && job.packageLpa !== 'NA' ? `<span class="chip chip-salary">${this.escape(job.packageLpa)}</span>` : ''}
+        ${job.workMode ? `<span class="chip chip-mode">${this.escape(job.workMode)}</span>` : ''}
+        ${job.channel ? `<span class="chip chip-channel">${this.escape(job.channel)}</span>` : ''}
       </div>
 
       ${milestoneBadge}
       ${checklistInfo}
 
       <div class="card-footer">
-        <span class="card-days-ago">${daysActive === 0 ? 'Today' : `${daysActive}d active`}</span>
-        <div class="card-footer-btns">
+        <span class="card-age font-mono">${daysActive} active</span>
+        <div class="card-actions">
           ${job.jobLink ? `
-            <a href="${this.escape(job.jobLink)}" target="_blank" rel="noopener noreferrer" class="card-link-btn" title="Open Job Link" onclick="event.stopPropagation();">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            <a href="${this.escape(job.jobLink)}" target="_blank" rel="noopener noreferrer" class="card-action-btn" title="Job Link" onclick="event.stopPropagation();">
+              ${icons.link}
             </a>
           ` : ''}
-          <button class="stage-shift-btn" title="Quick Move Stage" onclick="event.stopPropagation();">
-            ➔
+          <button class="card-action-btn btn-quick-stage" title="Move Stage" onclick="event.stopPropagation();">
+            ${icons.arrowRight}
           </button>
         </div>
       </div>
     `;
 
-    // Drag events
+    // Dragging
     card.addEventListener('dragstart', (e) => {
       this.draggedJobId = job.id;
       card.classList.add('dragging');
@@ -191,9 +267,8 @@ export class KanbanView {
       this.draggedJobId = null;
     });
 
-    // Tap on card body opens detail modal
     card.addEventListener('click', (e) => {
-      if (!e.target.closest('.card-edit-btn') && !e.target.closest('.stage-shift-btn') && !e.target.closest('a')) {
+      if (!e.target.closest('.card-edit-btn') && !e.target.closest('.card-action-btn') && !e.target.closest('a')) {
         this.onOpenDetail(job);
       }
     });
@@ -203,7 +278,7 @@ export class KanbanView {
       this.onEditJob(job);
     });
 
-    card.querySelector('.stage-shift-btn').addEventListener('click', (e) => {
+    card.querySelector('.btn-quick-stage').addEventListener('click', (e) => {
       e.stopPropagation();
       this.showQuickMoveMenu(e, job);
     });
@@ -212,22 +287,23 @@ export class KanbanView {
   }
 
   showQuickMoveMenu(event, job) {
-    const existingMenu = document.getElementById('quick-move-popover');
-    if (existingMenu) existingMenu.remove();
+    const existing = document.getElementById('quick-move-popover');
+    if (existing) existing.remove();
 
     const menu = document.createElement('div');
     menu.id = 'quick-move-popover';
     menu.className = 'quick-move-popover';
 
     const rect = event.currentTarget.getBoundingClientRect();
-    menu.style.top = `${rect.bottom + window.scrollY + 6}px`;
-    menu.style.left = `${Math.min(rect.left + window.scrollX, window.innerWidth - 200)}px`;
+    menu.style.top = `${rect.bottom + window.scrollY + 4}px`;
+    menu.style.left = `${Math.min(rect.left + window.scrollX, window.innerWidth - 180)}px`;
 
     menu.innerHTML = `
-      <div class="popover-title">Move to:</div>
+      <div class="popover-header">Move Stage</div>
       ${STAGES.map(s => `
         <button class="popover-item ${s.id === job.status ? 'active' : ''}" data-stage="${s.id}">
-          <span>${s.icon}</span> <span>${s.label}</span>
+          <span class="popover-dot" style="background: ${s.color};"></span>
+          <span>${s.label}</span>
         </button>
       `).join('')}
     `;
@@ -246,7 +322,7 @@ export class KanbanView {
       btn.addEventListener('click', () => {
         const newStage = btn.dataset.stage;
         storage.updateJobStatus(job.id, newStage);
-        notifications.showToast(`Updated to ${newStage}`, 'success');
+        notifications.showToast(`Moved to ${newStage}`, 'success');
         menu.remove();
         this.render();
       });
@@ -257,11 +333,7 @@ export class KanbanView {
     const cards = this.container.querySelectorAll('.kanban-card');
     cards.forEach(c => {
       const text = c.textContent.toLowerCase();
-      if (!query || text.includes(query)) {
-        c.style.display = 'flex';
-      } else {
-        c.style.display = 'none';
-      }
+      c.style.display = (!query || text.includes(query)) ? 'flex' : 'none';
     });
   }
 
