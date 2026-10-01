@@ -62,6 +62,27 @@ CREATE TRIGGER set_job_applications_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_modified_column();
 
+-- 6. Optional Table: Server-side Google Authenticator TOTP Security Storage
+CREATE TABLE IF NOT EXISTS public.user_security (
+    id TEXT PRIMARY KEY DEFAULT 'default_user',
+    user_id UUID DEFAULT auth.uid(),
+    totp_secret TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.user_security ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own security credentials"
+    ON public.user_security
+    FOR ALL
+    USING (
+        auth.uid() IS NULL OR auth.uid() = user_id
+    )
+    WITH CHECK (
+        auth.uid() IS NULL OR auth.uid() = user_id
+    );
+
 -- ==============================================================================
 -- Verification
 -- ==============================================================================

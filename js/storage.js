@@ -204,25 +204,24 @@ class StorageManager {
 
   // Settings
   getSettings() {
+    const defaults = {
+      supabaseUrl: 'https://kanqtodkjopmxoihvkso.supabase.co',
+      supabaseAnonKey: 'sb_publishable_8baeFmQZZTFFlJvfVWfSEQ_1p_BIB54',
+      autoSync: true,
+      notificationLeadDays: 1,
+      soundEnabled: true,
+      theme: 'cyber-dark'
+    };
+
     try {
       const raw = localStorage.getItem(SETTINGS_KEY);
-      return raw ? JSON.parse(raw) : {
-        supabaseUrl: '',
-        supabaseAnonKey: '',
-        autoSync: true,
-        notificationLeadDays: 1,
-        soundEnabled: true,
-        theme: 'cyber-dark'
-      };
+      if (!raw) return defaults;
+      const parsed = JSON.parse(raw);
+      if (!parsed.supabaseUrl) parsed.supabaseUrl = defaults.supabaseUrl;
+      if (!parsed.supabaseAnonKey) parsed.supabaseAnonKey = defaults.supabaseAnonKey;
+      return parsed;
     } catch {
-      return {
-        supabaseUrl: '',
-        supabaseAnonKey: '',
-        autoSync: true,
-        notificationLeadDays: 1,
-        soundEnabled: true,
-        theme: 'cyber-dark'
-      };
+      return defaults;
     }
   }
 

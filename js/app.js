@@ -10,6 +10,7 @@ import { TableView } from './tableView.js';
 import { CalendarView } from './calendarView.js';
 import { StatsView } from './statsView.js';
 import { PrepView } from './prepView.js';
+import { authManager } from './authModal.js';
 import { icons } from './icons.js';
 
 class App {
@@ -130,8 +131,8 @@ class App {
     closeDrawerBtn?.addEventListener('click', () => toggleDrawer(false));
     backdrop?.addEventListener('click', () => toggleDrawer(false));
 
-    document.getElementById('btn-cloud-sync')?.addEventListener('click', () => {
-      this.openCloudModal();
+    document.getElementById('btn-header-lock-app')?.addEventListener('click', () => {
+      authManager.lockApp();
     });
 
     // Theme toggle
@@ -272,17 +273,6 @@ class App {
       this.appendFormChecklistRow('', false);
     });
 
-    document.getElementById('cloud-sync-form')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      await this.handleSaveCloudConfig();
-    });
-
-    document.getElementById('btn-disconnect-cloud')?.addEventListener('click', () => {
-      cloudSync.disconnect();
-      notifications.showToast('Reverted to Local Vault', 'info');
-      cloudModal.classList.remove('active');
-    });
-
     document.getElementById('btn-modal-export-json')?.addEventListener('click', () => {
       storage.exportJSON();
       notifications.showToast('Downloaded JSON backup', 'success');
@@ -307,7 +297,8 @@ class App {
           const parsed = JSON.parse(event.target.result);
           const count = storage.importData(parsed);
           notifications.showToast(`Imported ${count} applications`, 'success');
-          cloudModal.classList.remove('active');
+          document.getElementById('notification-drawer')?.classList.remove('open');
+          document.getElementById('drawer-backdrop')?.classList.remove('open');
           this.refreshCurrentView();
         } catch {
           notifications.showToast('Invalid JSON file format', 'warning');
@@ -469,8 +460,8 @@ class App {
       ` : ''}
 
       <div class="detail-quick-actions">
-        ${job.jobLink ? `
-          <a href="${this.escape(job.jobLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-xs">
+        ${this.safeUrl(job.jobLink) ? `
+          <a href="${this.safeUrl(job.jobLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-xs">
             ${icons.link} Job Portal
           </a>
         ` : ''}
@@ -542,41 +533,13 @@ class App {
     modal.classList.add('active');
   }
 
-  openCloudModal() {
-    const modal = document.getElementById('cloud-sync-modal');
-    const settings = storage.getSettings();
-    document.getElementById('cloud-url-input').value = settings.supabaseUrl || '';
-    document.getElementById('cloud-key-input').value = settings.supabaseAnonKey || '';
-    modal.classList.add('active');
-  }
-
-  async handleSaveCloudConfig() {
-    const url = document.getElementById('cloud-url-input').value.trim();
-    const key = document.getElementById('cloud-key-input').value.trim();
-    const statusText = document.getElementById('cloud-modal-status-text');
-
-    if (!url || !key) {
-      notifications.showToast('Please provide both URL and Key', 'warning');
-      return;
+  safeUrl(urlStr) {
+    if (!urlStr) return '';
+    const trimmed = String(urlStr).trim();
+    if (/^https?:\/\//i.test(trimmed)) {
+      return this.escape(trimmed);
     }
-
-    statusText.textContent = 'Connecting to Supabase...';
-    statusText.style.color = '#0ea5e9';
-
-    const res = await cloudSync.connect(url, key);
-    if (res.success) {
-      statusText.textContent = 'Connected and synced with Supabase';
-      statusText.style.color = '#10b981';
-      notifications.showToast('Supabase Cloud Sync active', 'success');
-      setTimeout(() => {
-        document.getElementById('cloud-sync-modal').classList.remove('active');
-      }, 1000);
-      this.refreshCurrentView();
-    } else {
-      statusText.textContent = res.error;
-      statusText.style.color = '#f43f5e';
-      notifications.showToast(res.error, 'warning');
-    }
+    return '';
   }
 
   escape(str) {
