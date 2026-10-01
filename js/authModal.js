@@ -22,29 +22,35 @@ class AuthManager {
   }
 
   async init() {
-    // 1. Check session unlock state
-    const sessionUnlocked = sessionStorage.getItem('careerpilot_unlocked') === 'true';
-
-    // 2. Fetch server-side TOTP secret from Supabase (Central single-scan secret)
-    const serverSecret = await cloudSync.fetchTotpSecret();
-    const localSecret = localStorage.getItem('careerpilot_totp_secret');
-
-    if (serverSecret) {
-      this.secretKey = serverSecret;
-      localStorage.setItem('careerpilot_totp_secret', serverSecret);
-    } else if (localSecret) {
-      this.secretKey = localSecret;
-    }
-
-    if (sessionUnlocked && this.secretKey) {
-      this.isUnlocked = true;
-      this.setupInactivityTimer();
+    // 1. Clean reset across all browser instances on refresh
+    const SYNC_VERSION = 'totp_v3_clean_server_single_scan';
+    if (localStorage.getItem('careerpilot_sync_version') !== SYNC_VERSION) {
+      localStorage.removeItem('careerpilot_totp_secret');
+      sessionStorage.removeItem('careerpilot_unlocked');
+      localStorage.setItem('careerpilot_sync_version', SYNC_VERSION);
     }
 
     this.injectAuthOverlayHtml();
 
-    // Show lock overlay if locked or setup needed
-    if (!this.isUnlocked) {
+    // 2. Fetch server-side TOTP secret from Supabase (Central single-scan secret)
+    const serverSecret = await cloudSync.fetchTotpSecret();
+
+    if (serverSecret) {
+      this.secretKey = serverSecret;
+      localStorage.setItem('careerpilot_totp_secret', serverSecret);
+    } else {
+      // No code in server -> must scan and add code thing to connect
+      this.secretKey = null;
+      localStorage.removeItem('careerpilot_totp_secret');
+      sessionStorage.removeItem('careerpilot_unlocked');
+    }
+
+    const sessionUnlocked = sessionStorage.getItem('careerpilot_unlocked') === 'true';
+    if (sessionUnlocked && this.secretKey) {
+      this.isUnlocked = true;
+      this.setupInactivityTimer();
+    } else {
+      this.isUnlocked = false;
       this.showLockOverlay();
     }
   }

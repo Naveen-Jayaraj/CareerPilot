@@ -39,7 +39,7 @@ class StorageManager {
   }
 
   getJobs() {
-    return [...this.jobs];
+    return this.jobs.filter(j => j && j.id !== '__server_totp_config__');
   }
 
   getJob(id) {

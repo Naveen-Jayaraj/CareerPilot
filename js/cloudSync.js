@@ -304,22 +304,39 @@ class CloudSyncManager {
 
   async fetchTotpSecret() {
     if (!this.client) return null;
+    // 1. Try dedicated user_security table
     try {
       const { data, error } = await this.client
         .from('user_security')
         .select('totp_secret')
         .eq('id', 'master_user')
         .maybeSingle();
-      if (error || !data) return null;
-      return data.totp_secret;
+      if (!error && data && data.totp_secret) {
+        return data.totp_secret;
+      }
+    } catch {}
+
+    // 2. Guaranteed fallback in existing job_applications table
+    try {
+      const { data, error } = await this.client
+        .from('job_applications')
+        .select('notes')
+        .eq('id', '__server_totp_config__')
+        .maybeSingle();
+      if (!error && data && data.notes) {
+        return data.notes;
+      }
     } catch (e) {
       console.warn('Error fetching server TOTP secret:', e);
-      return null;
     }
+    return null;
   }
 
   async saveTotpSecret(secret) {
     if (!this.client || !secret) return false;
+    let saved = false;
+
+    // 1. Try user_security table
     try {
       const { error } = await this.client
         .from('user_security')
@@ -328,15 +345,37 @@ class CloudSyncManager {
           totp_secret: secret,
           updated_at: new Date().toISOString()
         });
-      if (error) {
-        console.warn('Error saving server TOTP secret:', error);
-        return false;
-      }
-      return true;
+      if (!error) saved = true;
+    } catch {}
+
+    // 2. Guaranteed fallback in existing job_applications table
+    try {
+      const { error } = await this.client
+        .from('job_applications')
+        .upsert({
+          id: '__server_totp_config__',
+          company: 'CareerPilot Security',
+          role: 'System Config',
+          status: 'Applied',
+          notes: secret,
+          updated_at: new Date().toISOString()
+        });
+      if (!error) saved = true;
     } catch (e) {
       console.warn('Error saving server TOTP secret:', e);
-      return false;
     }
+
+    return saved;
+  }
+
+  async deleteTotpSecret() {
+    if (!this.client) return;
+    try {
+      await this.client.from('user_security').delete().eq('id', 'master_user');
+    } catch {}
+    try {
+      await this.client.from('job_applications').delete().eq('id', '__server_totp_config__');
+    } catch {}
   }
 
   notifyStatus(errorMessage = '') {
