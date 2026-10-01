@@ -74,10 +74,20 @@
   color: var(--text-primary);
 }
 
+.modal-card form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .modal-body {
   padding: 18px;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-footer {
@@ -85,8 +95,11 @@
   border-top: 1px solid var(--border-subtle);
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 8px;
   background: var(--bg-sidebar);
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 /* Forms */
