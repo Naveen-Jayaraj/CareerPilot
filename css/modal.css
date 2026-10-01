@@ -1,24 +1,23 @@
 /* ==========================================================================
-   LINEAR-STYLE MODALS & FORMS
+   LINEAR-STYLE MODALS & FORMS - UNIVERSAL DISPLAY SAFE
+   Guaranteed to fit 100% inside any screen height/width (320px to 4K)
    ========================================================================== */
 
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 12px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
+  overflow-y: auto;
 }
 
 .modal-backdrop.active {
@@ -32,30 +31,35 @@
   border-radius: var(--radius-sm);
   width: 100%;
   max-width: 580px;
-  max-height: 88vh;
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-lg);
-  transform: translateY(10px) scale(0.98);
+  transform: scale(0.97);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
+  margin: auto;
+  position: relative;
 }
 
 .modal-backdrop.active .modal-card {
-  transform: translateY(0) scale(1);
+  transform: scale(1);
 }
 
 .modal-header {
-  padding: 14px 18px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: var(--bg-sidebar);
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 .modal-header h3 {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -79,11 +83,12 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  height: 100%;
   overflow: hidden;
 }
 
 .modal-body {
-  padding: 18px;
+  padding: 14px;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
@@ -91,7 +96,7 @@
 }
 
 .modal-footer {
-  padding: 12px 18px;
+  padding: 10px 14px;
   border-top: 1px solid var(--border-subtle);
   display: flex;
   justify-content: flex-end;
@@ -106,13 +111,13 @@
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .form-group-full {
@@ -120,7 +125,7 @@
 }
 
 .form-label {
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -129,10 +134,10 @@
   background: var(--bg-sidebar);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xs);
-  padding: 7px 10px;
+  padding: 6px 9px;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   outline: none;
   transition: border-color 0.15s ease;
 }
@@ -143,14 +148,14 @@
 
 .form-textarea {
   resize: vertical;
-  min-height: 70px;
+  min-height: 60px;
 }
 
 .form-checklist-container {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 6px;
+  gap: 5px;
+  margin-bottom: 4px;
 }
 
 .form-checklist-row {
@@ -176,32 +181,32 @@
 /* Detail Modal */
 .detail-header-card {
   background: var(--bg-sidebar);
-  padding: 14px;
+  padding: 12px;
   border-radius: var(--radius-xs);
   border: 1px solid var(--border-subtle);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .dh-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .dh-company {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .dh-role {
   color: var(--text-secondary);
-  font-size: 0.84rem;
+  font-size: 0.82rem;
 }
 
 .dh-status-badge {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: var(--radius-xs);
@@ -210,22 +215,22 @@
 .dh-meta-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  font-size: 0.78rem;
+  gap: 10px;
+  font-size: 0.76rem;
   color: var(--text-secondary);
-  padding-top: 8px;
+  padding-top: 6px;
   border-top: 1px solid var(--border-subtle);
 }
 
 .detail-milestone-box {
   background: rgba(245, 158, 11, 0.08);
   border: 1px solid rgba(245, 158, 11, 0.2);
-  padding: 10px 14px;
+  padding: 10px 12px;
   border-radius: var(--radius-xs);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
   gap: 8px;
 }
@@ -233,28 +238,28 @@
 .dmb-title {
   font-weight: 600;
   color: var(--accent-amber);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
 .dmb-time {
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   color: var(--text-secondary);
 }
 
 .detail-quick-actions {
   display: flex;
   gap: 6px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
 }
 
 .detail-section {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .detail-section h3 {
-  font-size: 0.82rem;
-  margin-bottom: 8px;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -263,9 +268,9 @@
 .detail-checklist {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   background: var(--bg-sidebar);
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: var(--radius-xs);
   border: 1px solid var(--border-subtle);
 }
@@ -274,7 +279,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   cursor: pointer;
 }
 
@@ -285,30 +290,22 @@
 
 .detail-notes-card {
   background: var(--bg-sidebar);
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: var(--radius-xs);
-  font-size: 0.8rem;
-  line-height: 1.5;
+  font-size: 0.78rem;
+  line-height: 1.45;
   border: 1px solid var(--border-subtle);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 600px) {
   .modal-backdrop {
-    align-items: flex-end;
-    padding: 0;
+    padding: 6px;
   }
   .modal-card {
-    max-width: 100%;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    max-height: 88vh;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-    transform: translateY(100%);
+    max-height: calc(100vh - 12px);
+    max-height: calc(100dvh - 12px);
   }
-  .modal-backdrop.active .modal-card {
-    transform: translateY(0);
+  .form-grid {
+    grid-template-columns: 1fr;
   }
-  .form-grid { grid-template-columns: 1fr; }
 }
