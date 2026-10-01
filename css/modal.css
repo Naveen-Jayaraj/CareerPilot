@@ -279,6 +279,23 @@
   border: 1px solid var(--border-subtle);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal-card {
+    max-width: 100%;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    max-height: 88vh;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    transform: translateY(100%);
+  }
+  .modal-backdrop.active .modal-card {
+    transform: translateY(0);
+  }
   .form-grid { grid-template-columns: 1fr; }
 }
