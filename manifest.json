@@ -1,0 +1,22 @@
+{
+  "name": "CareerPilot - Job Hunt Tracker",
+  "short_name": "CareerPilot",
+  "description": "Smart, secure job hunt and career placement pipeline tracker with cloud sync and milestone reminders.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./assets/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "./assets/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
