@@ -28,14 +28,14 @@
 .modal-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-medium);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   width: 100%;
   max-width: 580px;
   max-height: calc(100vh - 24px);
   max-height: calc(100dvh - 24px);
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
   transform: scale(0.97);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
@@ -43,12 +43,16 @@
   position: relative;
 }
 
+.modal-card.modal-card-lg {
+  max-width: 740px;
+}
+
 .modal-backdrop.active .modal-card {
   transform: scale(1);
 }
 
 .modal-header {
-  padding: 10px 14px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
@@ -58,24 +62,55 @@
   z-index: 10;
 }
 
+.modal-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-header-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--gradient-brand);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+}
+
 .modal-header h3 {
-  font-size: 0.92rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.modal-subtitle {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
 }
 
 .modal-close {
-  background: none;
-  border: none;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   color: var(--text-muted);
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
+  border-radius: var(--radius-xs);
   display: flex;
   align-items: center;
+  transition: all 0.15s ease;
 }
 
 .modal-close:hover {
   color: var(--text-primary);
+  border-color: var(--border-medium);
+  background: var(--bg-surface-elevated);
 }
 
 .modal-card form {
@@ -88,20 +123,99 @@
 }
 
 .modal-body {
-  padding: 14px;
+  padding: 18px 20px;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
   -webkit-overflow-scrolling: touch;
 }
 
+/* Dynamic Live Preview Card */
+.form-preview-card {
+  background: linear-gradient(135deg, rgba(21, 27, 46, 0.95), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.form-preview-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-brand);
+}
+
+.fpc-avatar {
+  flex-shrink: 0;
+}
+
+.fpc-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.fpc-title-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fpc-company-name {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fpc-stage-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  flex-shrink: 0;
+}
+
+.fpc-meta-line {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fpc-bullet {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
 .modal-footer {
-  padding: 10px 14px;
+  padding: 12px 20px;
   border-top: 1px solid var(--border-subtle);
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: var(--bg-sidebar);
   flex-shrink: 0;
   z-index: 10;
@@ -111,13 +225,13 @@
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 14px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .form-group-full {
@@ -125,30 +239,34 @@
 }
 
 .form-label {
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   font-weight: 600;
   color: var(--text-secondary);
+  letter-spacing: 0.01em;
 }
 
 .form-input, .form-select, .form-textarea {
   background: var(--bg-sidebar);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xs);
-  padding: 6px 9px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   border-color: var(--accent-indigo);
+  background: var(--bg-surface);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
 .form-textarea {
   resize: vertical;
-  min-height: 60px;
+  min-height: 70px;
+  line-height: 1.4;
 }
 
 .form-checklist-container {

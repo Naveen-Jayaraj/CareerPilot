@@ -12,6 +12,7 @@ import { StatsView } from './statsView.js';
 import { PrepView } from './prepView.js';
 import { authManager } from './authModal.js';
 import { icons } from './icons.js';
+import { getCompanyAvatar } from './avatars.js';
 
 class App {
   constructor() {
@@ -306,6 +307,51 @@ class App {
       };
       reader.readAsText(file);
     });
+
+    // Real-time dynamic company logo & details preview
+    ['form-company', 'form-role', 'form-status', 'form-package', 'form-workmode'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', () => this.updateFormPreview());
+        el.addEventListener('change', () => this.updateFormPreview());
+      }
+    });
+  }
+
+  updateFormPreview() {
+    const company = document.getElementById('form-company')?.value.trim() || 'Target Company';
+    const role = document.getElementById('form-role')?.value.trim() || 'Software Engineer';
+    const stage = document.getElementById('form-status')?.value || 'Applied';
+    const pkg = document.getElementById('form-package')?.value.trim() || 'Competitive LPA';
+    const mode = document.getElementById('form-workmode')?.value || 'On-site';
+
+    const avatarContainer = document.getElementById('form-preview-avatar');
+    if (avatarContainer) {
+      avatarContainer.innerHTML = getCompanyAvatar(company === 'Target Company' ? '' : company, 42);
+    }
+
+    const compEl = document.getElementById('form-preview-company');
+    if (compEl) compEl.textContent = company;
+
+    const roleEl = document.getElementById('form-preview-role');
+    if (roleEl) roleEl.textContent = role;
+
+    const stageEl = document.getElementById('form-preview-stage');
+    if (stageEl) {
+      stageEl.textContent = stage;
+      const stageObj = STAGES.find(s => s.id === stage);
+      if (stageObj) {
+        stageEl.style.borderColor = `${stageObj.color}66`;
+        stageEl.style.background = `${stageObj.color}22`;
+        stageEl.style.color = stageObj.color;
+      }
+    }
+
+    const pkgEl = document.getElementById('form-preview-package');
+    if (pkgEl) pkgEl.textContent = pkg;
+
+    const modeEl = document.getElementById('form-preview-workmode');
+    if (modeEl) modeEl.textContent = mode;
   }
 
   openEditModal(job = null) {
@@ -339,6 +385,7 @@ class App {
       checklist.forEach(item => this.appendFormChecklistRow(item.text, item.done));
     }
 
+    this.updateFormPreview();
     modal.classList.add('active');
   }
 
