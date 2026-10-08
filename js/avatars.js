@@ -95,26 +95,12 @@ export function getCompanyAvatar(companyName, size = 26) {
   const initials = clean.length >= 2 ? clean.substring(0, 2).toUpperCase() : (clean[0] || 'J').toUpperCase();
   const domain = getCompanyDomain(name);
 
-  // Curated harmonious gradients
-  const palettes = [
-    { from: '#6366f1', to: '#a855f7' },
-    { from: '#3b82f6', to: '#06b6d4' },
-    { from: '#10b981', to: '#059669' },
-    { from: '#f59e0b', to: '#ea580c' },
-    { from: '#ec4899', to: '#f43f5e' },
-    { from: '#8b5cf6', to: '#ec4899' },
-    { from: '#0ea5e9', to: '#6366f1' },
-  ];
-
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  const p = palettes[Math.abs(hash) % palettes.length];
-  const fontSize = Math.max(10, Math.round(size * 0.4));
-  const radius = size >= 40 ? 10 : 7;
+  const fontSize = Math.max(9, Math.round(size * 0.38));
+  const radius = size >= 40 ? 14 : 10;
 
   if (!domain) {
     return `
-      <span class="company-avatar-badge" style="width: ${size}px; height: ${size}px; min-width: ${size}px; font-size: ${fontSize}px; background: linear-gradient(135deg, ${p.from}, ${p.to}); color: #ffffff; border-radius: ${radius}px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-family: var(--font-mono); flex-shrink: 0; box-shadow: 0 2px 8px ${p.from}44; text-shadow: 0 1px 2px rgba(0,0,0,0.25);">
+      <span class="company-avatar-badge" style="width: ${size}px; height: ${size}px; min-width: ${size}px; font-size: ${fontSize}px; background: #FAFAF8; color: #0F0F11; border: 1px solid rgba(15, 15, 17, 0.10); border-radius: ${radius}px; display: inline-flex; align-items: center; justify-content: center; font-weight: 500; font-family: var(--font-mono, 'Geist Mono'); flex-shrink: 0; box-shadow: 0 1px 2px rgba(15, 15, 17, 0.04);">
         ${initials}
       </span>
     `;
@@ -128,12 +114,13 @@ export function getCompanyAvatar(companyName, size = 26) {
            alt="${clean}" 
            class="company-logo-img" 
            loading="lazy"
-           style="width: ${size}px; height: ${size}px; border-radius: ${radius}px; object-fit: contain; background: #ffffff; padding: ${size >= 40 ? 4 : 2}px; box-shadow: 0 2px 6px rgba(0,0,0,0.25); display: inline-block;" 
+           style="width: ${size}px; height: ${size}px; border-radius: ${radius}px; object-fit: contain; background: #FFFFFF; border: 1px solid rgba(15, 15, 17, 0.08); padding: ${size >= 40 ? 4 : 2}px; box-shadow: 0 1px 2px rgba(15, 15, 17, 0.04); display: inline-block;" 
            onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" 
       />
-      <span class="company-avatar-badge" style="display: none; width: ${size}px; height: ${size}px; font-size: ${fontSize}px; background: linear-gradient(135deg, ${p.from}, ${p.to}); color: #ffffff; border-radius: ${radius}px; align-items: center; justify-content: center; font-weight: 700; font-family: var(--font-mono); box-shadow: 0 2px 8px ${p.from}44; text-shadow: 0 1px 2px rgba(0,0,0,0.25);">
+      <span class="company-avatar-badge" style="display: none; width: ${size}px; height: ${size}px; font-size: ${fontSize}px; background: #FAFAF8; color: #0F0F11; border: 1px solid rgba(15, 15, 17, 0.10); border-radius: ${radius}px; align-items: center; justify-content: center; font-weight: 500; font-family: var(--font-mono, 'Geist Mono'); box-shadow: 0 1px 2px rgba(15, 15, 17, 0.04);">
         ${initials}
       </span>
     </span>
   `;
 }
+

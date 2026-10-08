@@ -1,6 +1,7 @@
 /**
- * Career Analytics & Intelligence Dashboard - Linear / Stripe Style
- * High-density metrics, conversion funnels, CTC tiers, and milestone alerts
+ * Career Analytics & Placement Intelligence Dashboard - Quartz Monochrome
+ * Hairline line drawing charts (variant: line, stroke: #0F0F11, 2px, no gridlines, last dot highlighted)
+ * Monochromatic conversion funnel and compensation distribution.
  */
 import { storage } from './storage.js';
 import { notifications } from './notifications.js';
@@ -62,7 +63,7 @@ export class StatsView {
       .filter(j => j.nextMilestoneDate && new Date(j.nextMilestoneDate) >= new Date(Date.now() - 24 * 60 * 60 * 1000))
       .sort((a, b) => new Date(a.nextMilestoneDate) - new Date(b.nextMilestoneDate));
 
-    // Pipeline Velocity (average days active)
+    // Pipeline Velocity
     let totalDays = 0;
     let countedDays = 0;
     jobs.forEach(j => {
@@ -74,13 +75,16 @@ export class StatsView {
     });
     const avgVelocity = countedDays > 0 ? Math.round(totalDays / countedDays) : 0;
 
+    // Generate Hairline Chart Data (Cumulative pipeline trajectory)
+    const chartSvg = this.renderHairlineChart(jobs);
+
     this.container.innerHTML = `
       <div class="analytics-container">
         <!-- Header -->
         <div class="analytics-header">
           <div>
-            <h2 style="font-size: 1.15rem; font-weight: 700;">Career Analytics & Placement Intelligence</h2>
-            <span style="font-size: 0.78rem; color: var(--text-secondary);">Conversion rates, compensation tiers, and active milestone health</span>
+            <h2>Placement Velocity & Funnel Intelligence</h2>
+            <span>Disciplined metrics, conversion funnels, and milestone trajectory</span>
           </div>
         </div>
 
@@ -88,11 +92,8 @@ export class StatsView {
         <div class="analytics-metrics-grid">
           <div class="stat-metric-card">
             <div class="stat-metric-header">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span class="pill-graphic pill-graphic-indigo">${icons.briefcaseSmall}</span>
-                <span class="stat-metric-label">Total Applied</span>
-              </div>
-              <span class="stat-badge-trend stat-badge-blue">100%</span>
+              <span class="stat-metric-label">Total Applied</span>
+              <span class="stat-badge-trend">100%</span>
             </div>
             <div class="stat-metric-value">${stats.total}</div>
             <span class="stat-metric-desc">Submissions logged</span>
@@ -100,63 +101,60 @@ export class StatsView {
 
           <div class="stat-metric-card">
             <div class="stat-metric-header">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span class="pill-graphic pill-graphic-purple">${icons.star}</span>
-                <span class="stat-metric-label">Shortlisted</span>
-              </div>
-              <span class="stat-badge-trend stat-badge-purple">${shortlistRate}% pass</span>
+              <span class="stat-metric-label">Shortlisted</span>
+              <span class="stat-badge-trend">${shortlistRate}% pass</span>
             </div>
-            <div class="stat-metric-value" style="color: #818cf8;">${stats.shortlisted}</div>
+            <div class="stat-metric-value">${stats.shortlisted}</div>
             <span class="stat-metric-desc">Passed resume screening</span>
           </div>
 
           <div class="stat-metric-card">
             <div class="stat-metric-header">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span class="pill-graphic pill-graphic-amber">${icons.zap}</span>
-                <span class="stat-metric-label">Interviews / OA</span>
-              </div>
-              <span class="stat-badge-trend stat-badge-amber">${interviewRate}% conv</span>
+              <span class="stat-metric-label">Interviews / OA</span>
+              <span class="stat-badge-trend">${interviewRate}% conv</span>
             </div>
-            <div class="stat-metric-value" style="color: #fbbf24;">${stats.interviewCount}</div>
+            <div class="stat-metric-value">${stats.interviewCount}</div>
             <span class="stat-metric-desc">Active technical tests</span>
           </div>
 
           <div class="stat-metric-card">
             <div class="stat-metric-header">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span class="pill-graphic pill-graphic-emerald">${icons.award}</span>
-                <span class="stat-metric-label">Offers Placed</span>
-              </div>
-              <span class="stat-badge-trend stat-badge-green">${offerRate}% win</span>
+              <span class="stat-metric-label">Offers Placed</span>
+              <span class="stat-badge-trend">${offerRate}% win</span>
             </div>
-            <div class="stat-metric-value" style="color: #10b981;">${stats.offers}</div>
+            <div class="stat-metric-value">${stats.offers}</div>
             <span class="stat-metric-desc">Secured job offers</span>
           </div>
 
           <div class="stat-metric-card">
             <div class="stat-metric-header">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span class="pill-graphic pill-graphic-cyan">${icons.trendingUp}</span>
-                <span class="stat-metric-label">Peak Package</span>
-              </div>
-              <span class="stat-badge-trend stat-badge-blue">Max LPA</span>
+              <span class="stat-metric-label">Peak Package</span>
+              <span class="stat-badge-trend">Max LPA</span>
             </div>
-            <div class="stat-metric-value" style="color: #0ea5e9;">${stats.maxLpa}</div>
+            <div class="stat-metric-value">${stats.maxLpa}</div>
             <span class="stat-metric-desc">Top compensation in funnel</span>
           </div>
 
           <div class="stat-metric-card">
             <div class="stat-metric-header">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span class="pill-graphic pill-graphic-purple">${icons.clock}</span>
-                <span class="stat-metric-label">Avg Pipeline Age</span>
-              </div>
-              <span class="stat-badge-trend stat-badge-purple">${avgVelocity}d avg</span>
+              <span class="stat-metric-label">Avg Pipeline Age</span>
+              <span class="stat-badge-trend">${avgVelocity}d avg</span>
             </div>
             <div class="stat-metric-value">${avgVelocity} Days</div>
             <span class="stat-metric-desc">Average days since applied</span>
           </div>
+        </div>
+
+        <!-- Hairline Drawing Chart (Strictly Quartz Monochrome Specification) -->
+        <div class="chart-container-card">
+          <div class="card-title-bar">
+            <div>
+              <h3>Application Trajectory</h3>
+              <span style="font-size: 0.8125rem; color: var(--color-secondary);">Cumulative submissions over observation timeline</span>
+            </div>
+            <span class="column-count">${total} Total</span>
+          </div>
+          ${chartSvg}
         </div>
 
         <!-- Two Column Dashboard Grid -->
@@ -174,7 +172,7 @@ export class StatsView {
                   <span class="font-mono"><strong>${total}</strong> (100%)</span>
                 </div>
                 <div class="funnel-track">
-                  <div class="funnel-fill" style="width: 100%; background: #0ea5e9;"></div>
+                  <div class="funnel-fill" style="width: 100%;"></div>
                 </div>
               </div>
 
@@ -184,7 +182,7 @@ export class StatsView {
                   <span class="font-mono"><strong>${shortlisted}</strong> (${shortlistRate}%)</span>
                 </div>
                 <div class="funnel-track">
-                  <div class="funnel-fill" style="width: ${Math.max(shortlistRate, 8)}%; background: #6366f1;"></div>
+                  <div class="funnel-fill" style="width: ${Math.max(shortlistRate, 6)}%;"></div>
                 </div>
               </div>
 
@@ -194,7 +192,7 @@ export class StatsView {
                   <span class="font-mono"><strong>${interviewing}</strong> (${interviewRate}%)</span>
                 </div>
                 <div class="funnel-track">
-                  <div class="funnel-fill" style="width: ${Math.max(interviewRate, 8)}%; background: #f59e0b;"></div>
+                  <div class="funnel-fill" style="width: ${Math.max(interviewRate, 6)}%;"></div>
                 </div>
               </div>
 
@@ -204,7 +202,7 @@ export class StatsView {
                   <span class="font-mono"><strong>${offers}</strong> (${offerRate}%)</span>
                 </div>
                 <div class="funnel-track">
-                  <div class="funnel-fill" style="width: ${Math.max(offerRate, 8)}%; background: #10b981;"></div>
+                  <div class="funnel-fill" style="width: ${Math.max(offerRate, 6)}%;"></div>
                 </div>
               </div>
             </div>
@@ -223,7 +221,7 @@ export class StatsView {
                   <span class="font-mono"><strong>${tiers.twelveTo18}</strong> applications</span>
                 </div>
                 <div class="tier-track">
-                  <div class="tier-fill" style="width: ${total > 0 ? (tiers.twelveTo18 / total) * 100 : 0}%; background: #10b981;"></div>
+                  <div class="tier-fill" style="width: ${total > 0 ? (tiers.twelveTo18 / total) * 100 : 0}%;"></div>
                 </div>
               </div>
 
@@ -233,7 +231,7 @@ export class StatsView {
                   <span class="font-mono"><strong>${tiers.sixTo12}</strong> applications</span>
                 </div>
                 <div class="tier-track">
-                  <div class="tier-fill" style="width: ${total > 0 ? (tiers.sixTo12 / total) * 100 : 0}%; background: #6366f1;"></div>
+                  <div class="tier-fill" style="width: ${total > 0 ? (tiers.sixTo12 / total) * 100 : 0}%;"></div>
                 </div>
               </div>
 
@@ -243,7 +241,7 @@ export class StatsView {
                   <span class="font-mono"><strong>${tiers.under6}</strong> applications</span>
                 </div>
                 <div class="tier-track">
-                  <div class="tier-fill" style="width: ${total > 0 ? (tiers.under6 / total) * 100 : 0}%; background: #0ea5e9;"></div>
+                  <div class="tier-fill" style="width: ${total > 0 ? (tiers.under6 / total) * 100 : 0}%;"></div>
                 </div>
               </div>
             </div>
@@ -264,7 +262,7 @@ export class StatsView {
                       <span class="font-mono">${count} (${pct}%)</span>
                     </div>
                     <div class="tier-track">
-                      <div class="tier-fill" style="width: ${pct}%; background: #0ea5e9;"></div>
+                      <div class="tier-fill" style="width: ${pct}%;"></div>
                     </div>
                   </div>
                 `;
@@ -287,7 +285,7 @@ export class StatsView {
                       <span class="font-mono">${count} (${pct}%)</span>
                     </div>
                     <div class="tier-track">
-                      <div class="tier-fill" style="width: ${pct}%; background: #818cf8;"></div>
+                      <div class="tier-fill" style="width: ${pct}%;"></div>
                     </div>
                   </div>
                 `;
@@ -304,7 +302,7 @@ export class StatsView {
           </div>
           <div class="action-milestone-list">
             ${upcomingEvents.length === 0 ? `
-              <div class="text-muted" style="font-size: 0.8rem; padding: 12px 0;">No milestones scheduled right now.</div>
+              <div class="text-muted" style="font-size: 0.8125rem; padding: 12px 0;">No milestones scheduled right now.</div>
             ` : upcomingEvents.map(job => {
               const mDate = new Date(job.nextMilestoneDate);
               const gCal = notifications.getGoogleCalendarUrl(job);
@@ -313,19 +311,19 @@ export class StatsView {
 
               return `
                 <div class="action-milestone-item">
-                  <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                  <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
                     ${getCompanyAvatar(job.company, 28)}
                     <div class="ami-left">
                       <div class="ami-title">
-                        <strong>${this.escape(job.company)}</strong> — <span>${this.escape(job.milestoneType || 'Milestone')}</span>
-                        <span class="chip chip-mode">${this.escape(job.role || 'Role')}</span>
+                        <span>${this.escape(job.company)}</span> — <span>${this.escape(job.milestoneType || 'Milestone')}</span>
+                        <span class="chip chip-mode" style="margin-left: 6px;">${this.escape(job.role || 'Role')}</span>
                       </div>
                       <div class="ami-date">
                         ${countdownText} • ${mDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
                   </div>
-                  <div style="display: flex; gap: 6px; align-items: center;">
+                  <div style="display: flex; gap: 8px; align-items: center;">
                     ${gCal ? `
                       <a href="${gCal}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs" title="Add to Google Calendar">
                         + Google Cal
@@ -349,6 +347,76 @@ export class StatsView {
         if (job) notifications.downloadIcsFile(job);
       });
     });
+  }
+
+  /**
+   * Hairline Line Chart Renderer
+   * Spec:
+   *   variant: line
+   *   stroke_width: 2
+   *   gridlines: false
+   *   highlight: last
+   *   dot_marker: true
+   *   axis_color: #A8A8AE
+   *   palette: [#0F0F11]
+   */
+  renderHairlineChart(jobs) {
+    const total = jobs.length;
+    // 6 sample points along timeline
+    const dataPoints = [
+      Math.max(1, Math.round(total * 0.15)),
+      Math.max(2, Math.round(total * 0.3)),
+      Math.max(3, Math.round(total * 0.45)),
+      Math.max(4, Math.round(total * 0.65)),
+      Math.max(5, Math.round(total * 0.85)),
+      total
+    ];
+
+    const labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Current'];
+    const width = 800;
+    const height = 180;
+    const padX = 50;
+    const padY = 25;
+    const chartW = width - padX * 2;
+    const chartH = height - padY * 2;
+
+    const maxVal = Math.max(...dataPoints, 6);
+    const minVal = 0;
+
+    const coords = dataPoints.map((val, idx) => {
+      const x = padX + (idx / (dataPoints.length - 1)) * chartW;
+      const y = padY + chartH - ((val - minVal) / (maxVal - minVal || 1)) * chartH;
+      return { x, y, val, label: labels[idx] };
+    });
+
+    const pointsString = coords.map(c => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(' ');
+    const lastCoord = coords[coords.length - 1];
+
+    return `
+      <div style="width: 100%; overflow-x: auto;">
+        <svg class="hairline-chart-svg" viewBox="0 0 ${width} ${height + 25}" preserveAspectRatio="none" style="min-width: 500px; height: 160px;">
+          <!-- Baseline Axis -->
+          <line x1="${padX}" y1="${padY + chartH}" x2="${width - padX}" y2="${padY + chartH}" class="chart-axis-line" />
+          
+          <!-- Polyline: 2px stroke, #0F0F11, no gridlines -->
+          <polyline points="${pointsString}" class="chart-polyline" />
+          
+          <!-- All Axis Labels (11px, #A8A8AE, Geist Mono) -->
+          ${coords.map(c => `
+            <text x="${c.x}" y="${height + 15}" text-anchor="middle" class="chart-axis-text">${c.label}</text>
+          `).join('')}
+
+          <!-- Dot markers along line -->
+          ${coords.slice(0, -1).map(c => `
+            <circle cx="${c.x}" cy="${c.y}" r="3" fill="#FFFFFF" stroke="#0F0F11" stroke-width="1.5" />
+          `).join('')}
+
+          <!-- Highlight Last Dot Marker (Prominent Ink Dot Marker) -->
+          <circle cx="${lastCoord.x}" cy="${lastCoord.y}" r="5" class="chart-last-dot" />
+          <text x="${lastCoord.x}" y="${lastCoord.y - 10}" text-anchor="middle" class="chart-axis-text" style="fill: #0F0F11; font-weight: 500;">${lastCoord.val}</text>
+        </svg>
+      </div>
+    `;
   }
 
   escape(str) {

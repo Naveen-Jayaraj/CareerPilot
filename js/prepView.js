@@ -86,7 +86,7 @@ export class PrepView {
             <div class="board-target-title">
               <span>${this.escape(currentJob.company)}</span>
               <span class="board-meta-badge chip-mode">${this.escape(currentJob.role || 'Role')}</span>
-              <span class="board-meta-badge" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc;">${currentJob.status}</span>
+              <span class="board-meta-badge chip-status">${currentJob.status}</span>
             </div>
           </div>
 
@@ -119,10 +119,10 @@ export class PrepView {
 
   renderColumn(col, job) {
     const colDots = {
-      todo: '<span class="status-indicator" style="background: #94a3b8;"></span>',
-      doing: '<span class="status-indicator" style="background: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);"></span>',
-      review: '<span class="status-indicator" style="background: #8b5cf6; box-shadow: 0 0 6px rgba(139, 92, 246, 0.4);"></span>',
-      done: '<span class="status-indicator" style="background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);"></span>'
+      todo: '<span class="status-indicator" style="background: var(--color-tertiary, #A8A8AE);"></span>',
+      doing: '<span class="status-indicator" style="background: var(--color-secondary, #6F6F75);"></span>',
+      review: '<span class="status-indicator" style="background: var(--color-primary, #0F0F11);"></span>',
+      done: '<span class="status-indicator" style="background: var(--color-primary, #0F0F11);"></span>'
     };
 
     return `

@@ -9,6 +9,9 @@ import { cloudSync } from './cloudSync.js';
 import { notifications } from './notifications.js';
 import { icons } from './icons.js';
 
+// Set to true to bypass Google Authenticator during testing, false to re-enable
+export const BYPASS_AUTH_FOR_TESTING = false;
+
 class AuthManager {
   constructor() {
     this.secretKey = null;
@@ -21,34 +24,42 @@ class AuthManager {
     this.init();
   }
 
-  async init() {
-    // 1. Clean reset across all browser instances on refresh
-    const SYNC_VERSION = 'totp_v3_clean_server_single_scan';
-    if (localStorage.getItem('careerpilot_sync_version') !== SYNC_VERSION) {
-      localStorage.removeItem('careerpilot_totp_secret');
+  setUnlockedState(unlocked) {
+    this.isUnlocked = unlocked;
+    if (unlocked) {
+      localStorage.setItem('careerpilot_unlocked', 'true');
+      sessionStorage.setItem('careerpilot_unlocked', 'true');
+    } else {
+      localStorage.removeItem('careerpilot_unlocked');
       sessionStorage.removeItem('careerpilot_unlocked');
-      localStorage.setItem('careerpilot_sync_version', SYNC_VERSION);
+    }
+  }
+
+  async init() {
+    if (BYPASS_AUTH_FOR_TESTING) {
+      this.setUnlockedState(true);
+      return;
     }
 
     this.injectAuthOverlayHtml();
 
-    // 2. Fetch server-side TOTP secret from Supabase (Central single-scan secret)
-    const serverSecret = await cloudSync.fetchTotpSecret();
+    // Check persistent unlock state first
+    const isPersistentlyUnlocked = 
+      localStorage.getItem('careerpilot_unlocked') === 'true' || 
+      sessionStorage.getItem('careerpilot_unlocked') === 'true';
 
+    // Fetch server-side TOTP secret from Supabase or fallback to local
+    const serverSecret = await cloudSync.fetchTotpSecret();
     if (serverSecret) {
       this.secretKey = serverSecret;
       localStorage.setItem('careerpilot_totp_secret', serverSecret);
     } else {
-      // No code in server -> must scan and add code thing to connect
-      this.secretKey = null;
-      localStorage.removeItem('careerpilot_totp_secret');
-      sessionStorage.removeItem('careerpilot_unlocked');
+      this.secretKey = localStorage.getItem('careerpilot_totp_secret') || null;
     }
 
-    const sessionUnlocked = sessionStorage.getItem('careerpilot_unlocked') === 'true';
-    if (sessionUnlocked && this.secretKey) {
+    if (isPersistentlyUnlocked) {
       this.isUnlocked = true;
-      this.setupInactivityTimer();
+      this.closeLockOverlay();
     } else {
       this.isUnlocked = false;
       this.showLockOverlay();
@@ -56,21 +67,7 @@ class AuthManager {
   }
 
   setupInactivityTimer() {
-    const resetTimer = () => {
-      if (this.idleTimer) clearTimeout(this.idleTimer);
-      if (this.isUnlocked) {
-        // Auto-lock after 15 minutes of idle time
-        this.idleTimer = setTimeout(() => {
-          this.lockApp();
-        }, 15 * 60 * 1000);
-      }
-    };
-
-    ['mousemove', 'keydown', 'click', 'touchstart'].forEach(evt => {
-      window.addEventListener(evt, resetTimer, { passive: true });
-    });
-
-    resetTimer();
+    // Inactivity auto-lock disabled so authentication remains persistent
   }
 
   injectAuthOverlayHtml() {
@@ -150,12 +147,20 @@ class AuthManager {
         <button class="btn btn-primary btn-sm" id="btn-verify-setup" style="width: 100%;">
           Verify & Sync Authenticator
         </button>
+        <button class="btn btn-ghost btn-sm" id="btn-skip-setup" style="width: 100%; margin-top: 8px;">
+          Skip for now & Continue
+        </button>
       </div>
     `;
 
     container.querySelector('#btn-copy-secret').onclick = () => {
       navigator.clipboard.writeText(this.tempSecret);
       notifications.showToast('Copied Secret Key to clipboard', 'info');
+    };
+
+    container.querySelector('#btn-skip-setup').onclick = () => {
+      this.setUnlockedState(true);
+      this.closeLockOverlay();
     };
 
     this.attachPinInputListeners(async (code) => {
@@ -186,9 +191,7 @@ class AuthManager {
       // Save master secret to Supabase server for cross-device authentication
       await cloudSync.saveTotpSecret(this.secretKey);
 
-      sessionStorage.setItem('careerpilot_unlocked', 'true');
-      this.isUnlocked = true;
-      this.setupInactivityTimer();
+      this.setUnlockedState(true);
 
       notifications.showToast('Google Authenticator synced to server!', 'success');
       notifications.playChime('success');
@@ -216,6 +219,9 @@ class AuthManager {
         <button class="btn btn-primary btn-sm" id="btn-verify-unlock" style="width: 100%; margin-top: 4px;">
           Unlock Dashboard
         </button>
+        <button class="btn btn-ghost btn-sm" id="btn-dismiss-unlock" style="width: 100%; margin-top: 8px;">
+          Dismiss / Continue
+        </button>
       </div>
     `;
 
@@ -226,6 +232,11 @@ class AuthManager {
     container.querySelector('#btn-verify-unlock').onclick = async () => {
       const code = this.getEnteredPin();
       await this.handleVerifyUnlock(code);
+    };
+
+    container.querySelector('#btn-dismiss-unlock').onclick = () => {
+      this.setUnlockedState(true);
+      this.closeLockOverlay();
     };
   }
 
@@ -260,9 +271,7 @@ class AuthManager {
     if (isValid) {
       this.failedAttempts = 0;
       this.lastVerifiedStep = currentStep;
-      sessionStorage.setItem('careerpilot_unlocked', 'true');
-      this.isUnlocked = true;
-      this.setupInactivityTimer();
+      this.setUnlockedState(true);
 
       notifications.showToast('Unlocked CareerPilot Dashboard', 'success');
       notifications.playChime('success');
@@ -360,9 +369,7 @@ class AuthManager {
   }
 
   lockApp() {
-    sessionStorage.removeItem('careerpilot_unlocked');
-    this.isUnlocked = false;
-    if (this.idleTimer) clearTimeout(this.idleTimer);
+    this.setUnlockedState(false);
     this.showLockOverlay();
     notifications.showToast('App Locked', 'info');
   }

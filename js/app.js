@@ -29,7 +29,7 @@ class App {
       });
     }
 
-    this.applyTheme(storage.getSettings().theme || 'cyber-dark');
+    this.applyTheme(storage.getSettings().theme || 'quartz');
 
     const mainContent = document.getElementById('view-container');
     this.views.kanban = new KanbanView(
@@ -160,6 +160,7 @@ class App {
   setupCloudSyncIndicator() {
     const indicator = document.getElementById('cloud-status-indicator');
     const label = document.getElementById('cloud-status-label');
+    if (!indicator || !label) return;
     const settings = storage.getSettings();
 
     if (settings.supabaseUrl) {

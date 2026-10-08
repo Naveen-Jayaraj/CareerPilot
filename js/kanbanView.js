@@ -4,13 +4,13 @@ import { icons } from './icons.js';
 import { getCompanyAvatar } from './avatars.js';
 
 export const STAGES = [
-  { id: 'Wishlist', label: 'Wishlist', color: '#64748b' },
-  { id: 'Applied', label: 'Applied', color: '#0ea5e9' },
-  { id: 'Shortlisted', label: 'Shortlisted', color: '#6366f1' },
-  { id: 'Exam', label: 'OA / Exam', color: '#f59e0b' },
-  { id: 'Interview', label: 'Interview', color: '#8b5cf6' },
-  { id: 'Offer', label: 'Offer', color: '#10b981' },
-  { id: 'Rejected', label: 'Rejected', color: '#f43f5e' }
+  { id: 'Wishlist', label: 'Wishlist', color: '#A8A8AE' },
+  { id: 'Applied', label: 'Applied', color: '#6F6F75' },
+  { id: 'Shortlisted', label: 'Shortlisted', color: '#0F0F11' },
+  { id: 'Exam', label: 'OA / Exam', color: '#6F6F75' },
+  { id: 'Interview', label: 'Interview', color: '#0F0F11' },
+  { id: 'Offer', label: 'Offer', color: '#0F0F11' },
+  { id: 'Rejected', label: 'Rejected', color: '#A8A8AE' }
 ];
 
 export class KanbanView {

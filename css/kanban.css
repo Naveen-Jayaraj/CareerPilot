@@ -1,5 +1,7 @@
 /* ==========================================================================
-   KANBAN PIPELINE - LINEAR / VERCEL COMPACT STYLE
+   KANBAN PIPELINE - QUARTZ MONOCHROME
+   16px corner radii, pure white cards on paper canvas, hairline borders,
+   subtle layered shadows, and calm monochrome indicators.
    ========================================================================== */
 
 .kanban-toolbar {
@@ -7,181 +9,199 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .toolbar-left {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .search-input-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
-  color: var(--text-muted);
+  background: var(--color-surface);
+  border: 1px solid rgba(15, 15, 17, 0.10);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  color: var(--color-secondary);
+  transition: var(--transition-base);
+}
+
+.search-input-wrap:focus-within {
+  border-color: var(--color-tertiary);
+  box-shadow: 0 0 0 4px rgba(168, 168, 174, 0.15);
 }
 
 .search-input-wrap input {
   background: transparent;
-  border: none;
+  border: none !important;
   outline: none;
-  color: var(--text-primary);
-  font-size: 0.82rem;
-  width: 190px;
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  width: 200px;
+  padding: 0 !important;
+  box-shadow: none !important;
 }
 
 .search-icon {
   display: flex;
   align-items: center;
+  color: var(--color-secondary);
 }
 
 /* Filter Pills */
 .filter-pills {
   display: flex;
-  gap: 4px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 3px;
+  gap: 6px;
+  background: var(--color-surface);
+  border: 1px solid rgba(15, 15, 17, 0.08);
+  border-radius: var(--radius-pill);
+  padding: 4px;
 }
 
 .pill-btn {
   background: transparent;
   border: none;
-  padding: 4px 10px;
-  font-size: 0.76rem;
+  padding: 6px 14px;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--text-secondary);
-  border-radius: var(--radius-xs);
+  color: var(--color-secondary);
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition-base);
 }
 
 .pill-btn:hover {
-  color: var(--text-primary);
+  color: var(--color-primary);
 }
 
 .pill-btn.active {
-  background: var(--bg-surface-elevated);
-  color: var(--text-primary);
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
+  background: var(--color-primary);
+  color: var(--color-neutral);
+  box-shadow: var(--shadow-button);
 }
 
-/* Kanban Grid - Adaptive & Fit-Screen */
+/* Kanban Grid */
 .kanban-grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
   width: 100%;
   align-items: start;
 }
 
 .kanban-column {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  background: rgba(15, 15, 17, 0.02);
+  border: 1px solid rgba(15, 15, 17, 0.06);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
-  min-height: 280px;
+  min-height: 360px;
+  transition: var(--transition-base);
 }
 
 .kanban-column-header {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border-subtle);
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(15, 15, 17, 0.06);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--bg-sidebar);
-  border-top-left-radius: var(--radius-sm);
-  border-top-right-radius: var(--radius-sm);
+  background: var(--color-surface);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
 }
 
 .column-title-group {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
 .column-status-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
+  background: var(--color-primary);
 }
 
 .column-name {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--color-primary);
 }
 
 .column-count {
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  font-size: 0.75rem;
+  color: var(--color-secondary);
   font-family: var(--font-mono);
-  background: var(--bg-surface);
-  padding: 1px 6px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-subtle);
+  background: var(--color-neutral);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(15, 15, 17, 0.08);
 }
 
 /* Card List */
 .kanban-card-list {
-  padding: 8px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-height: 140px;
+  gap: 12px;
+  min-height: 180px;
 }
 
 .kanban-card-list.drag-over {
-  background: var(--bg-surface-elevated);
+  background: rgba(15, 15, 17, 0.04);
 }
 
 .kanban-empty-drop {
-  border: 1px dashed var(--border-subtle);
-  border-radius: var(--radius-xs);
-  padding: 24px 10px;
+  border: 1px dashed rgba(15, 15, 17, 0.12);
+  border-radius: var(--radius-md);
+  padding: 32px 16px;
   text-align: center;
-  color: var(--text-muted);
-  font-size: 0.74rem;
+  color: var(--color-tertiary);
+  font-size: 0.8125rem;
 }
 
-/* Card */
+/* Kanban Card (Verbatim Recipe from DESIGN.md) */
 .kanban-card {
-  background: var(--bg-sidebar);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xs);
-  padding: 10px;
+  background: var(--color-surface);
+  border: 1px solid rgba(15, 15, 17, 0.06);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(15, 15, 17, 0.04), 0 8px 24px -12px rgba(15, 15, 17, 0.08);
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
   cursor: grab;
-  transition: all 0.15s ease;
+  transition: all 240ms cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
 }
 
 .kanban-card:hover {
-  border-color: var(--border-medium);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -12px rgba(15, 23, 42, 0.18);
+  border-color: rgba(15, 15, 17, 0.12);
 }
 
 .kanban-card.dragging {
-  opacity: 0.4;
+  opacity: 0.9;
+  transform: scale(1.02) rotate(-0.5deg);
+  box-shadow: 0 20px 48px -16px rgba(15, 23, 42, 0.3);
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .card-title-group {
@@ -193,18 +213,20 @@
 }
 
 .card-company {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.2;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--color-primary);
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .card-role {
-  font-size: 0.74rem;
-  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  color: var(--color-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -213,203 +235,109 @@
 .card-edit-btn {
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: var(--color-tertiary);
   cursor: pointer;
   padding: 4px;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-pill);
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  transition: var(--transition-base);
 }
 
 .card-edit-btn:hover {
-  color: var(--text-primary);
+  color: var(--color-primary);
 }
 
-/* Chips */
+/* Chips (Clean Monochrome) */
 .card-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
 }
 
 .chip {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  padding: 2px 6px;
-  border-radius: var(--radius-xs);
-  line-height: 1.2;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  line-height: 1.3;
 }
 
 .chip-salary {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--accent-emerald);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: var(--color-neutral);
+  color: var(--color-primary);
+  border: 1px solid rgba(15, 15, 17, 0.10);
   font-family: var(--font-mono);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .chip-mode {
-  background: var(--bg-surface);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--color-secondary);
+  border: 1px solid rgba(15, 15, 17, 0.08);
 }
 
 .chip-channel {
-  background: rgba(99, 102, 241, 0.08);
-  color: var(--accent-indigo);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: transparent;
+  color: var(--color-secondary);
+  border: 1px solid rgba(15, 15, 17, 0.08);
 }
 
 /* Milestone Pill */
 .card-milestone-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.72rem;
-  padding: 3px 6px;
-  border-radius: var(--radius-xs);
+  gap: 6px;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-neutral);
+  color: var(--color-primary);
+  border: 1px solid rgba(15, 15, 17, 0.08);
+  font-family: var(--font-mono);
 }
 
 .card-milestone-pill.upcoming {
-  background: rgba(245, 158, 11, 0.08);
-  color: var(--accent-amber);
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-color: rgba(15, 15, 17, 0.16);
 }
 
 .card-milestone-pill.overdue {
-  background: rgba(244, 63, 94, 0.08);
-  color: var(--accent-rose);
-  border: 1px solid rgba(244, 63, 94, 0.2);
+  border-color: rgba(15, 15, 17, 0.3);
+  font-weight: 500;
 }
 
 .card-prep-tag {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.7rem;
-  color: var(--accent-emerald);
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--color-secondary);
+  font-family: var(--font-mono);
 }
 
 .card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 6px;
-  border-top: 1px solid var(--border-subtle);
-  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(15, 15, 17, 0.06);
+  margin-top: 4px;
 }
 
-.card-age {
-  font-size: 0.7rem;
-  color: var(--text-muted);
+.card-date {
+  font-size: 0.75rem;
+  color: var(--color-tertiary);
+  font-family: var(--font-mono);
 }
 
-.card-actions {
+.card-external-link {
+  color: var(--color-secondary);
   display: flex;
   align-items: center;
-  gap: 4px;
+  transition: var(--transition-base);
 }
 
-.card-action-btn {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  border-radius: var(--radius-xs);
-  padding: 3px 5px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  transition: all 0.15s ease;
-}
-
-.card-action-btn:hover {
-  border-color: var(--border-medium);
-  color: var(--text-primary);
-}
-
-/* Quick Move Popover */
-.quick-move-popover {
-  position: absolute;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-md);
-  padding: 6px;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 150px;
-}
-
-.popover-header {
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  padding: 3px 6px;
-}
-
-.popover-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 8px;
-  background: none;
-  border: none;
-  border-radius: var(--radius-xs);
-  color: var(--text-primary);
-  font-size: 0.78rem;
-  cursor: pointer;
-  text-align: left;
-}
-
-.popover-item:hover {
-  background: var(--bg-surface-elevated);
-}
-
-.popover-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-
-/* Kanban Mobile Optimization */
-@media (max-width: 768px) {
-  .kanban-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-  .toolbar-left {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-  }
-  .search-input-wrap {
-    width: 100%;
-  }
-  .search-input-wrap input {
-    width: 100%;
-  }
-  .filter-pills {
-    overflow-x: auto;
-    white-space: nowrap;
-    padding: 2px;
-  }
-  .kanban-grid-container {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    gap: 12px;
-    padding-bottom: 14px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .kanban-column {
-    flex: 0 0 84vw;
-    max-width: 320px;
-    scroll-snap-align: start;
-    min-height: auto;
-  }
+.card-external-link:hover {
+  color: var(--color-primary);
 }
